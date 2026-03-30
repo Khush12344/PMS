@@ -1,0 +1,232 @@
+@page
+@model PMS.Web.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Staff Login";
+    Layout = "_Layout";
+}
+
+@section Styles {
+<style>
+    .login-wrapper {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 460px;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(27,67,50,0.15);
+        overflow: hidden;
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
+        padding: 32px 32px 24px;
+        text-align: center;
+        position: relative;
+    }
+
+    .login-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0; right: 0;
+        height: 24px;
+        background: white;
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    .login-icon {
+        width: 72px;
+        height: 72px;
+        background: rgba(255,255,255,0.15);
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 2rem;
+    }
+
+    .login-header h4 {
+        font-family: 'Noto Serif', serif;
+        color: white;
+        font-weight: 700;
+        margin: 0 0 4px;
+    }
+
+    .login-header p {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .login-body {
+        background: white;
+        padding: 28px 32px 32px;
+    }
+
+    .otp-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .otp-group .form-control {
+        flex: 1;
+    }
+
+    .btn-send-otp {
+        background: #2D6A4F;
+        color: white;
+        border: none;
+        white-space: nowrap;
+        font-weight: 600;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .btn-send-otp:hover {
+        background: #1B4332;
+        color: white;
+    }
+
+    .mock-otp-badge {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        color: #856404;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 16px;
+    }
+
+    .timer-text {
+        font-size: 0.8rem;
+        color: #2D6A4F;
+        font-weight: 600;
+    }
+</style>
+}
+
+<div class="login-wrapper">
+    <div class="login-card card">
+
+        <div class="login-header">
+            <div class="login-icon">🔐</div>
+            <h4>Staff Login</h4>
+            <p>Aranya Helpline — Vigilance Wing</p>
+        </div>
+
+        <div class="login-body">
+
+            @if (Model.IsMockOtp)
+            {
+                <div class="mock-otp-badge">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>Dev Mode:</strong> OTP is <strong>123456</strong> — check Output window in VS
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger py-2 mb-3">
+                    <i class="bi bi-exclamation-circle me-1"></i>@Model.ErrorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert alert-success py-2 mb-3">
+                    <i class="bi bi-check-circle me-1"></i>@Model.SuccessMessage
+                </div>
+            }
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-phone me-1"></i>Mobile Number
+                    </label>
+                    <div class="otp-group">
+                        <input asp-for="MobileNumber"
+                               class="form-control"
+                               placeholder="Enter 10-digit mobile"
+                               maxlength="10"
+                               inputmode="numeric" />
+                        <button type="submit"
+                                asp-page-handler="SendOtp"
+                                class="btn-send-otp">
+                            <i class="bi bi-send me-1"></i>Send OTP
+                        </button>
+                    </div>
+                    <span asp-validation-for="MobileNumber" class="text-danger small"></span>
+                </div>
+
+                @if (Model.OtpSent)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-shield-lock me-1"></i>Enter OTP
+                            <span class="timer-text ms-2" id="timerDisplay"></span>
+                        </label>
+                        <input asp-for="Otp"
+                               class="form-control"
+                               placeholder="Enter 6-digit OTP"
+                               maxlength="6"
+                               inputmode="numeric"
+                               autofocus />
+                        <span asp-validation-for="Otp" class="text-danger small"></span>
+                        <div class="mt-1">
+                            <small class="text-muted">OTP sent to @Model.MobileNumber</small>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit"
+                                asp-page-handler="Login"
+                                class="btn btn-forest btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </button>
+                    </div>
+                }
+
+                <input type="hidden" asp-for="OtpSent" />
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    var otpSent = @Json.Serialize(Model.OtpSent);
+
+    if (otpSent) {
+        var seconds = 600;
+        var timerEl = document.getElementById('timerDisplay');
+        var interval = setInterval(function () {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(interval);
+                if (timerEl) {
+                    timerEl.textContent = '(OTP expired)';
+                    timerEl.style.color = 'red';
+                }
+                return;
+            }
+            var m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            var s = (seconds % 60).toString().padStart(2, '0');
+            if (timerEl) timerEl.textContent = '(' + m + ':' + s + ')';
+        }, 1000);
+    }
+</script>
+}

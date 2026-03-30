@@ -1,0 +1,227 @@
+@page
+@model PMS.Web.Pages.FieldOfficer.DashboardModel
+@{ ViewData["Title"] = "Field Officer Dashboard"; }
+
+<style>
+    .page-header { background:linear-gradient(135deg,#1a5c2a 0%,#2d8a45 100%); color:white; padding:24px 32px; border-radius:10px; margin-bottom:28px; }
+    .stat-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:20px 24px; border-left:4px solid #e5e7eb; }
+    .stat-number { font-size:2rem; font-weight:700; color:#111827; }
+    .stat-label  { font-size:.82rem; color:#6b7280; margin-top:2px; }
+
+    .tab-btn { padding:7px 18px; border-radius:6px; border:1px solid #e5e7eb; background:#f9fafb; color:#374151; font-size:.83rem; font-weight:500; cursor:pointer; transition:all .15s; }
+    .tab-btn.active,.tab-btn:hover { background:#1a5c2a; color:white; border-color:#1a5c2a; }
+
+    .petition-row { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.06); padding:15px 20px; margin-bottom:10px; border-left:3px solid #e5e7eb; transition:box-shadow .15s; }
+    .petition-row:hover { box-shadow:0 3px 12px rgba(0,0,0,.1); }
+
+    .pid  { font-family:monospace; font-size:.78rem; color:#6b7280; }
+    .pcat { font-weight:600; font-size:.93rem; color:#111827; }
+    .pdesc { font-size:.81rem; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px; }
+    .pdate { font-size:.75rem; color:#9ca3af; }
+
+    .bs { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.73rem; font-weight:600; white-space:nowrap; }
+    .bs-assigned { background:#dbeafe; color:#1d4ed8; }
+    .bs-inprog   { background:#ede9fe; color:#5b21b6; }
+    .bs-reopened { background:#fef3c7; color:#92400e; }
+    .bs-closure  { background:#fce7f3; color:#9d174d; }
+    .bs-closed   { background:#d1fae5; color:#065f46; }
+
+    .empty-tab { text-align:center; padding:40px; color:#9ca3af; font-size:.9rem; }
+</style>
+
+<div class="container-fluid py-4" style="max-width:1100px;">
+
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 style="font-size:1.35rem;font-weight:700;margin:0 0 4px;">
+                    <i class="bi bi-person-badge me-2"></i>Field Officer — Dashboard
+                </h2>
+                <p style="margin:0;opacity:.85;font-size:.88rem;">
+                    @Model.OfficerName — @Model.OfficerRole | Karnataka Forest Department
+                </p>
+            </div>
+            <a href="/Account/Logout" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+            </a>
+        </div>
+    </div>
+
+    @* Stats *@
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color:#3b82f6;">
+                <div class="stat-number text-primary">@Model.CountAssigned</div>
+                <div class="stat-label">Newly Assigned</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color:#7c3aed;">
+                <div class="stat-number" style="color:#7c3aed;">@Model.CountInProgress</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color:#db2777;">
+                <div class="stat-number" style="color:#db2777;">@Model.CountPendingClosure</div>
+                <div class="stat-label">Awaiting APCCF Decision</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color:#10b981;">
+                <div class="stat-number text-success">@Model.CountClosed</div>
+                <div class="stat-label">Closed</div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabs *@
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        <button class="tab-btn active" onclick="showTab('assigned', this)">
+            Assigned <span class="badge bg-primary ms-1">@Model.CountAssigned</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('inprogress', this)">
+            In Progress <span class="badge ms-1" style="background:#7c3aed;">@Model.CountInProgress</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('closure', this)">
+            Awaiting Decision <span class="badge ms-1" style="background:#db2777;">@Model.CountPendingClosure</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('closed', this)">
+            Closed <span class="badge bg-success ms-1">@Model.CountClosed</span>
+        </button>
+    </div>
+
+    @* Assigned Tab *@
+    <div id="tab-assigned">
+        @if (!Model.Assigned.Any())
+        {
+            <div class="empty-tab"><i class="bi bi-inbox fs-3"></i><br/>No new assignments</div>
+        }
+        @foreach (var p in Model.Assigned)
+        {
+            <div class="petition-row" style="border-left-color:#3b82f6;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                        <div class="pdate mt-1">
+                            <i class="bi bi-calendar3 me-1"></i>Assigned @p.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy")
+                            @if (p.LocationDistrict != null) { <span class="ms-2"><i class="bi bi-geo-alt me-1"></i>@p.LocationDistrict.Name</span> }
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-assigned">New</span>
+                        <div class="mt-2">
+                            <a href="/FieldOfficer/PetitionDetail?id=@p.PetitionId" class="btn btn-primary btn-sm" style="font-size:.78rem;">
+                                <i class="bi bi-eye me-1"></i>View & Act
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* In Progress Tab *@
+    <div id="tab-inprogress" style="display:none;">
+        @if (!Model.InProgress.Any())
+        {
+            <div class="empty-tab">No petitions in progress</div>
+        }
+        @foreach (var p in Model.InProgress)
+        {
+            bool isReopened = p.Status == PMS.Web.Models.Enums.PetitionStatus.Reopened;
+            <div class="petition-row" style="border-left-color:#7c3aed;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                        <div class="pdate mt-1">
+                            <i class="bi bi-calendar3 me-1"></i>@p.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy")
+                            @if (isReopened) { <span class="ms-2 text-warning fw-bold">⚠ Sent back by APCCF</span> }
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs @(isReopened ? "bs-reopened" : "bs-inprog")">
+                            @(isReopened ? "Reopened" : "In Progress")
+                        </span>
+                        <div class="mt-2">
+                            <a href="/FieldOfficer/PetitionDetail?id=@p.PetitionId" class="btn btn-sm" style="background:#7c3aed;color:white;font-size:.78rem;">
+                                <i class="bi bi-pencil me-1"></i>Submit Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Pending Closure Tab *@
+    <div id="tab-closure" style="display:none;">
+        @if (!Model.PendingClosure.Any())
+        {
+            <div class="empty-tab">No petitions awaiting APCCF decision</div>
+        }
+        @foreach (var p in Model.PendingClosure)
+        {
+            <div class="petition-row" style="border-left-color:#db2777;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-closure">Awaiting Decision</span>
+                        <div class="mt-2">
+                            <a href="/FieldOfficer/PetitionDetail?id=@p.PetitionId" class="btn btn-secondary btn-sm" style="font-size:.78rem;">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Closed Tab *@
+    <div id="tab-closed" style="display:none;">
+        @if (!Model.Closed.Any())
+        {
+            <div class="empty-tab">No closed petitions</div>
+        }
+        @foreach (var p in Model.Closed)
+        {
+            <div class="petition-row" style="border-left-color:#10b981;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-closed">Closed</span>
+                        <div class="mt-2">
+                            <a href="/FieldOfficer/PetitionDetail?id=@p.PetitionId" class="btn btn-secondary btn-sm" style="font-size:.78rem;">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+<script>
+    function showTab(name, btn) {
+        ['assigned','inprogress','closure','closed'].forEach(t =>
+            document.getElementById('tab-' + t).style.display = 'none');
+        document.getElementById('tab-' + name).style.display = 'block';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+</script>

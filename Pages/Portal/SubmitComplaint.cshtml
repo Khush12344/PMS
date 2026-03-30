@@ -1,0 +1,582 @@
+@page
+@model PMS.Web.Pages.Portal.SubmitComplaintModel
+@{
+    ViewData["Title"] = "Submit Complaint";
+    ViewData["ActivePage"] = "SubmitComplaint";
+}
+
+@section Styles {
+<style>
+    .form-section {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 24px 28px;
+        margin-bottom: 20px;
+    }
+    .section-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--forest-dark);
+        border-left: 4px solid var(--forest-light);
+        padding-left: 10px;
+        margin-bottom: 18px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .form-label { font-weight: 600; font-size: 0.875rem; color: var(--forest-dark); }
+    .required::after { content: ' *'; color: #dc2626; }
+
+    .location-box {
+        background: #f8faf8;
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+    }
+    .urban-rural-toggle { display: flex; gap: 12px; }
+    .ur-btn {
+        flex: 1; padding: 10px; border: 2px solid #e5e7eb;
+        border-radius: 8px; background: #f9fafb; cursor: pointer;
+        text-align: center; font-weight: 600; font-size: 0.85rem;
+        transition: all 0.15s; user-select: none;
+    }
+    .ur-btn.sel-rural  { border-color: #2D6A4F; background: #D8F3DC; color: #1B4332; }
+    .ur-btn.sel-urban  { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+
+    .hidden-row { display: none; }
+
+    .file-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .file-upload-grid.photos { grid-template-columns: 1fr 1fr 1fr; }
+    .file-box {
+        border: 2px dashed #d1d5db; border-radius: 8px; padding: 14px;
+        text-align: center; font-size: 0.8rem; color: #6b7280;
+        position: relative; transition: border-color 0.15s;
+    }
+    .file-box:hover { border-color: #2D6A4F; }
+    .file-box input[type=file] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+    }
+    .file-name { font-size: 0.75rem; color: #2D6A4F; margin-top: 6px; word-break: break-all; }
+    .char-count { font-size: 0.75rem; color: #9ca3af; text-align: right; margin-top: 2px; }
+
+    .success-card {
+        background: #f0fdf4; border: 2px solid #86efac;
+        border-radius: 12px; padding: 32px; text-align: center;
+    }
+    .petition-badge {
+        font-family: monospace; font-size: 1.5rem; font-weight: 700;
+        color: #1B4332; background: white; border: 2px solid #52B788;
+        border-radius: 8px; padding: 8px 24px; display: inline-block; margin: 12px 0;
+    }
+    select.form-select { border-radius: 6px; }
+    select.form-select:disabled { background: #f3f4f6; }
+</style>
+}
+
+<div style="max-width: 860px; margin: 0 auto;">
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage) && Model.SubmittedPetitionId != null)
+{
+    <div class="success-card">
+        <div style="font-size:3rem;">✅</div>
+            <h4 style="color:#1B4332; margin: 8px 0 4px;">Petition Submitted Successfully!</h4>
+            <p style="color:#6b7280; font-size:0.88rem; margin:0 0 8px;">Save your Petition ID for tracking.</p>
+        <div class="petition-badge">@Model.SubmittedPetitionId</div>
+        <p style="font-size:0.82rem; color:#6b7280; margin:4px 0 16px;">
+            SMS confirmation sent to @Model.MobileNumber
+        </p>
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <a href="/Portal/MyComplaints" class="btn btn-forest">
+                    <i class="bi bi-list-ul me-2"></i>View My Petition
+            </a>
+            <a href="/Portal/SubmitComplaint" class="btn btn-forest-outline">
+                <i class="bi bi-plus me-2"></i>Submit Another
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger mb-3">
+            <i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage
+        </div>
+    }
+
+    <form method="post" enctype="multipart/form-data" id="complaintForm">
+        @Html.AntiForgeryToken()
+
+        @* Complainant Details *@
+        <div class="form-section">
+                <div class="section-title"><i class="bi bi-person me-2"></i>Petition Details</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label required">Full Name</label>
+                    <input asp-for="ComplainantName" class="form-control" placeholder="Your full name" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="text" class="form-control" value="@Model.MobileNumber" readonly
+                           style="background:#f3f4f6;" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">House No.</label>
+                    <input asp-for="HouseNo" class="form-control" placeholder="Door / House No." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Street</label>
+                    <input asp-for="Street" class="form-control" placeholder="Street / Road" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Area</label>
+                    <input asp-for="Area" class="form-control" placeholder="Area / Locality" />
+                </div>
+
+                @* Complainant Location — Urban/Rural first *@
+                <div class="col-12">
+                    <div class="location-box">
+                        <div class="row g-2">
+
+                            @* Step 1: Urban/Rural *@
+                            <div class="col-md-4">
+                                <label class="form-label">Area Type</label>
+                                <div class="urban-rural-toggle">
+                                    <div class="ur-btn" id="cRuralBtn"
+                                         onclick="areaTypeSelected('c','rural')">
+                                        <i class="bi bi-tree me-1"></i>Rural
+                                    </div>
+                                    <div class="ur-btn" id="cUrbanBtn"
+                                         onclick="areaTypeSelected('c','urban')">
+                                        <i class="bi bi-buildings me-1"></i>Urban
+                                    </div>
+                                </div>
+                                <input type="hidden" id="cIsUrban" asp-for="ComplainantIsUrban" />
+                            </div>
+
+                            @* Step 2: District (shown after area type selected) *@
+                            <div class="col-md-4 hidden-row" id="cDistrictRow">
+                                <label class="form-label">District</label>
+                                <select id="cDistrictSel" class="form-select"
+                                        onchange="districtChanged('c', this.value)">
+                                    <option value="">— Select District —</option>
+                                    @foreach (var d in Model.Districts)
+                                    {
+                                        <option value="@d.DistrictId">@d.Name</option>
+                                    }
+                                </select>
+                                <input type="hidden" id="cDistrictId" asp-for="ComplainantDistrictId" />
+                            </div>
+
+                            @* Step 3a: Rural — Taluk → Hobli → Village *@
+                            <div class="col-md-4 hidden-row" id="cTalukRow">
+                                <label class="form-label">Taluk</label>
+                                <select id="cTalukSel" class="form-select"
+                                        onchange="talukChanged('c', this.value)">
+                                    <option value="">— Select Taluk —</option>
+                                </select>
+                                <input type="hidden" id="cTalukId" asp-for="ComplainantTalukId" />
+                            </div>
+
+                            <div class="col-md-4 hidden-row" id="cHobliRow">
+                                <label class="form-label">Hobli</label>
+                                <select id="cHobliSel" class="form-select"
+                                        onchange="hobliChanged('c', this.value)">
+                                    <option value="">— Select Hobli —</option>
+                                </select>
+                                <input type="hidden" id="cHobliId" asp-for="ComplainantHobliId" />
+                            </div>
+
+                            <div class="col-md-4 hidden-row" id="cVillageRow">
+                                <label class="form-label">Village</label>
+                                <select id="cVillageSel" class="form-select"
+                                        onchange="document.getElementById('cVillageId').value=this.value">
+                                    <option value="">— Select Village —</option>
+                                </select>
+                                <input type="hidden" id="cVillageId" asp-for="ComplainantVillageId" />
+                            </div>
+
+                            @* Step 3b: Urban — Town *@
+                            <div class="col-md-4 hidden-row" id="cTownRow">
+                                <label class="form-label">Town</label>
+                                <select id="cTownSel" class="form-select"
+                                        onchange="document.getElementById('cTownId').value=this.value">
+                                    <option value="">— Select Town —</option>
+                                </select>
+                                <input type="hidden" id="cTownId" asp-for="ComplainantTownId" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Pincode</label>
+                                <input asp-for="ComplainantPincode" class="form-control"
+                                       placeholder="560001" maxlength="6" inputmode="numeric" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Complaint Details *@
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-exclamation-circle me-2"></i>Complaint Details
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label required">Category</label>
+                    <select asp-for="ComplaintCategoryId" class="form-select">
+                        <option value="0">— Select Category —</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.CategoryId">@c.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label required">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"
+                              maxlength="2000" placeholder="Describe the complaint in detail..."
+                              oninput="document.getElementById('charCount').textContent=this.value.length">
+                    </textarea>
+                    <div class="char-count"><span id="charCount">0</span>/2000</div>
+                </div>
+            </div>
+        </div>
+
+        @* Incident Location *@
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-geo-alt me-2"></i>Incident Location
+                <span class="text-danger">*</span>
+            </div>
+            <div class="location-box">
+                <div class="row g-2">
+
+                    @* Step 1: Urban/Rural *@
+                    <div class="col-md-4">
+                        <label class="form-label required">Area Type</label>
+                        <div class="urban-rural-toggle">
+                            <div class="ur-btn" id="lRuralBtn"
+                                 onclick="areaTypeSelected('l','rural')">
+                                <i class="bi bi-tree me-1"></i>Rural
+                            </div>
+                            <div class="ur-btn" id="lUrbanBtn"
+                                 onclick="areaTypeSelected('l','urban')">
+                                <i class="bi bi-buildings me-1"></i>Urban
+                            </div>
+                        </div>
+                        <input type="hidden" id="lIsUrban" asp-for="LocationIsUrban" />
+                    </div>
+
+                    @* Step 2: District *@
+                    <div class="col-md-4 hidden-row" id="lDistrictRow">
+                        <label class="form-label required">District</label>
+                        <select id="lDistrictSel" class="form-select"
+                                onchange="districtChanged('l', this.value)">
+                            <option value="">— Select District —</option>
+                            @foreach (var d in Model.Districts)
+                            {
+                                <option value="@d.DistrictId">@d.Name</option>
+                            }
+                        </select>
+                        <input type="hidden" id="lDistrictId" asp-for="LocationDistrictId" />
+                    </div>
+
+                    @* Step 3a: Rural — Taluk → Hobli → Village *@
+                    <div class="col-md-4 hidden-row" id="lTalukRow">
+                        <label class="form-label">Taluk</label>
+                        <select id="lTalukSel" class="form-select"
+                                onchange="talukChanged('l', this.value)">
+                            <option value="">— Select Taluk —</option>
+                        </select>
+                        <input type="hidden" id="lTalukId" asp-for="LocationTalukId" />
+                    </div>
+
+                    <div class="col-md-4 hidden-row" id="lHobliRow">
+                        <label class="form-label">Hobli</label>
+                        <select id="lHobliSel" class="form-select"
+                                onchange="hobliChanged('l', this.value)">
+                            <option value="">— Select Hobli —</option>
+                        </select>
+                        <input type="hidden" id="lHobliId" asp-for="LocationHobliId" />
+                    </div>
+
+                    <div class="col-md-4 hidden-row" id="lVillageRow">
+                        <label class="form-label">Village</label>
+                        <select id="lVillageSel" class="form-select"
+                                onchange="document.getElementById('lVillageId').value=this.value">
+                            <option value="">— Select Village —</option>
+                        </select>
+                        <input type="hidden" id="lVillageId" asp-for="LocationVillageId" />
+                    </div>
+
+                    @* Step 3b: Urban — Town *@
+                    <div class="col-md-4 hidden-row" id="lTownRow">
+                        <label class="form-label">Town</label>
+                        <select id="lTownSel" class="form-select"
+                                onchange="document.getElementById('lTownId').value=this.value">
+                            <option value="">— Select Town —</option>
+                        </select>
+                        <input type="hidden" id="lTownId" asp-for="LocationTownId" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Pincode</label>
+                        <input asp-for="LocationPincode" class="form-control"
+                               placeholder="560001" maxlength="6" inputmode="numeric" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Attachments *@
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-paperclip me-2"></i>Attachments (Optional)
+            </div>
+
+            <div class="mb-3">
+                <div style="font-size:0.82rem;font-weight:700;color:#6b7280;margin-bottom:8px;">
+                    <i class="bi bi-file-earmark-pdf text-danger me-1"></i>
+                    Documents — PDF only, max 500KB each
+                </div>
+                <div class="file-upload-grid">
+                    <div class="file-box">
+                        <div style="font-weight:600;font-size:0.82rem;">📄 Document 1</div>
+                        <div style="font-size:0.72rem;">Click to upload PDF</div>
+                        <input type="file" name="Document1" accept=".pdf"
+                               onchange="showFileName(this,'doc1name')" />
+                        <div class="file-name" id="doc1name"></div>
+                    </div>
+                    <div class="file-box">
+                        <div style="font-weight:600;font-size:0.82rem;">📄 Document 2</div>
+                        <div style="font-size:0.72rem;">Click to upload PDF</div>
+                        <input type="file" name="Document2" accept=".pdf"
+                               onchange="showFileName(this,'doc2name')" />
+                        <div class="file-name" id="doc2name"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#6b7280;margin-bottom:8px;">
+                    <i class="bi bi-image text-success me-1"></i>
+                    Photos — JPG/JPEG only, max 1MB each
+                </div>
+                <div class="file-upload-grid photos">
+                    <div class="file-box">
+                        <div style="font-weight:600;font-size:0.82rem;">📷 Photo 1</div>
+                        <div style="font-size:0.72rem;">Click to upload</div>
+                        <input type="file" name="Photo1" accept=".jpg,.jpeg"
+                               onchange="showFileName(this,'ph1name')" />
+                        <div class="file-name" id="ph1name"></div>
+                    </div>
+                    <div class="file-box">
+                        <div style="font-weight:600;font-size:0.82rem;">📷 Photo 2</div>
+                        <div style="font-size:0.72rem;">Click to upload</div>
+                        <input type="file" name="Photo2" accept=".jpg,.jpeg"
+                               onchange="showFileName(this,'ph2name')" />
+                        <div class="file-name" id="ph2name"></div>
+                    </div>
+                    <div class="file-box">
+                        <div style="font-weight:600;font-size:0.82rem;">📷 Photo 3</div>
+                        <div style="font-size:0.72rem;">Click to upload</div>
+                        <input type="file" name="Photo3" accept=".jpg,.jpeg"
+                               onchange="showFileName(this,'ph3name')" />
+                        <div class="file-name" id="ph3name"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Submit *@
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/Portal/Dashboard" class="btn btn-forest-outline">
+                <i class="bi bi-arrow-left me-2"></i>Back
+            </a>
+            <button type="submit" class="btn btn-forest btn-lg" onclick="return validateForm()">
+                <i class="bi bi-send me-2"></i>Submit Complaint
+            </button>
+        </div>
+    </form>
+}
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ── Show/Hide helpers ──────────────────────────────────
+    function showRow(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('hidden-row');
+    }
+    function hideRow(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('hidden-row');
+    }
+    function getEl(id) {
+        return document.getElementById(id);
+    }
+    function setVal(id, val) {
+        var el = getEl(id);
+        if (el) el.value = val || '';
+    }
+
+    // ── Fill a select dropdown ─────────────────────────────
+    function fillSelect(selId, items, valKey, textKey) {
+        var sel = getEl(selId);
+        if (!sel) { console.warn('fillSelect: not found: ' + selId); return; }
+        sel.innerHTML = '<option value="">— Select —</option>';
+        items.forEach(function(item) {
+            var opt = document.createElement('option');
+            opt.value = item[valKey];
+            opt.textContent = item[textKey];
+            sel.appendChild(opt);
+        });
+    }
+
+    // ── Reset downstream ───────────────────────────────────
+    function resetBelow(prefix, from) {
+        var levels = ['Taluk','Hobli','Village','Town'];
+        var start = levels.indexOf(from);
+        for (var i = start; i < levels.length; i++) {
+            fillSelect(prefix + levels[i] + 'Sel', [], '', '');
+            setVal(prefix + levels[i] + 'Id', '');
+            hideRow(prefix + levels[i] + 'Row');
+        }
+    }
+
+    // ── Area type selected FIRST ───────────────────────────
+    window.areaTypeSelected = function(prefix, type) {
+        var isUrban = (type === 'urban');
+        setVal(prefix + 'IsUrban', isUrban ? 'true' : 'false');
+
+        // Update button styles
+        var rBtn = getEl(prefix + 'RuralBtn');
+        var uBtn = getEl(prefix + 'UrbanBtn');
+        if (rBtn) rBtn.className = 'ur-btn' + (type === 'rural' ? ' sel-rural' : '');
+        if (uBtn) uBtn.className = 'ur-btn' + (type === 'urban' ? ' sel-urban' : '');
+
+        // Reset everything below
+        resetBelow(prefix, 'Taluk');
+        setVal(prefix + 'DistrictId', '');
+        var distSel = getEl(prefix + 'DistrictSel');
+        if (distSel) distSel.value = '';
+
+        // Show district dropdown
+        showRow(prefix + 'DistrictRow');
+
+        // Hide town/taluk rows until district is selected
+        hideRow(prefix + 'TownRow');
+        hideRow(prefix + 'TalukRow');
+    };
+
+    // ── District changed (after area type) ────────────────
+    window.districtChanged = function(prefix, distId) {
+        setVal(prefix + 'DistrictId', distId);
+        resetBelow(prefix, 'Taluk');
+
+        if (!distId) return;
+
+        // Check which type was selected
+        var isUrbanEl = getEl(prefix + 'IsUrban');
+        var isUrban = isUrbanEl && isUrbanEl.value === 'true';
+
+        if (!isUrban) {
+            // Rural: load taluks
+            hideRow(prefix + 'TownRow');
+            showRow(prefix + 'TalukRow');
+            fetch('/Portal/SubmitComplaint?handler=Taluks&districtId=' + distId)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    fillSelect(prefix + 'TalukSel', data, 'talukId', 'name');
+                })
+                .catch(function(e) { console.error('loadTaluks error:', e); });
+        } else {
+            // Urban: load towns
+            hideRow(prefix + 'TalukRow');
+            hideRow(prefix + 'HobliRow');
+            hideRow(prefix + 'VillageRow');
+            showRow(prefix + 'TownRow');
+            fetch('/Portal/SubmitComplaint?handler=Towns&districtId=' + distId)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    fillSelect(prefix + 'TownSel', data, 'townId', 'name');
+                })
+                .catch(function(e) { console.error('loadTowns error:', e); });
+        }
+    };
+
+    // ── Taluk changed ──────────────────────────────────────
+    window.talukChanged = function(prefix, talukId) {
+        setVal(prefix + 'TalukId', talukId);
+        fillSelect(prefix + 'HobliSel', [], '', '');
+        setVal(prefix + 'HobliId', '');
+        fillSelect(prefix + 'VillageSel', [], '', '');
+        setVal(prefix + 'VillageId', '');
+        hideRow(prefix + 'HobliRow');
+        hideRow(prefix + 'VillageRow');
+
+        if (!talukId) return;
+        showRow(prefix + 'HobliRow');
+        fetch('/Portal/SubmitComplaint?handler=Hoblis&talukId=' + talukId)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                fillSelect(prefix + 'HobliSel', data, 'hobliId', 'name');
+            })
+            .catch(function(e) { console.error('loadHoblis error:', e); });
+    };
+
+    // ── Hobli changed ──────────────────────────────────────
+    window.hobliChanged = function(prefix, hobliId) {
+        setVal(prefix + 'HobliId', hobliId);
+        fillSelect(prefix + 'VillageSel', [], '', '');
+        setVal(prefix + 'VillageId', '');
+        hideRow(prefix + 'VillageRow');
+
+        if (!hobliId) return;
+        showRow(prefix + 'VillageRow');
+        fetch('/Portal/SubmitComplaint?handler=Villages&hobliId=' + hobliId)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                fillSelect(prefix + 'VillageSel', data, 'villageId', 'name');
+            })
+            .catch(function(e) { console.error('loadVillages error:', e); });
+    };
+
+    // ── File name preview ──────────────────────────────────
+    window.showFileName = function(input, nameId) {
+        var el = getEl(nameId);
+        if (!el) return;
+        if (input.files && input.files[0]) {
+            var f = input.files[0];
+            el.textContent = f.name + ' (' + (f.size/1024).toFixed(1) + 'KB)';
+        }
+    };
+
+    // ── Form validation ────────────────────────────────────
+    window.validateForm = function() {
+        var distId = getEl('lDistrictId') ? getEl('lDistrictId').value : '';
+        var catId  = getEl('ComplaintCategoryId') ? getEl('ComplaintCategoryId').value : '0';
+        var desc   = getEl('Description') ? getEl('Description').value.trim() : '';
+
+        if (!distId || distId === '0') {
+            alert('Please select the incident district.');
+            return false;
+        }
+        if (!catId || catId === '0') {
+            alert('Please select a complaint category.');
+            return false;
+        }
+        if (!desc) {
+            alert('Please enter a description.');
+            return false;
+        }
+        return true;
+    };
+
+});
+</script>
+}

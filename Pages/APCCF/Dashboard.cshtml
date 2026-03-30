@@ -1,0 +1,332 @@
+@page
+@model PMS.Web.Pages.APCCF.DashboardModel
+@{ ViewData["Title"] = "APCCF Dashboard"; }
+
+<style>
+    .page-header { background:linear-gradient(135deg,#1a3a5c 0%,#2563eb 100%); color:white; padding:24px 32px; border-radius:10px; margin-bottom:28px; }
+    .stat-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:18px 20px; border-left:4px solid #e5e7eb; }
+    .stat-number { font-size:1.8rem; font-weight:700; color:#111827; }
+    .stat-label  { font-size:.8rem; color:#6b7280; margin-top:2px; }
+
+    .inbox-header { border-radius:10px; padding:14px 20px; margin-bottom:14px; display:flex; align-items:center; gap:14px; }
+    .inbox-direct { background:linear-gradient(90deg,#fff7ed,#fef3c7); border:1px solid #fcd34d; }
+    .inbox-oa     { background:linear-gradient(90deg,#f0fdf4,#dcfce7); border:1px solid #86efac; }
+    .inbox-title  { font-weight:700; font-size:.98rem; color:#111827; }
+    .inbox-sub    { font-size:.79rem; color:#6b7280; margin-top:2px; }
+
+    .tab-btn { padding:7px 16px; border-radius:6px; border:1px solid #e5e7eb; background:#f9fafb; color:#374151; font-size:.82rem; font-weight:500; cursor:pointer; transition:all .15s; }
+    .tab-btn.active,.tab-btn:hover { background:#1a3a5c; color:white; border-color:#1a3a5c; }
+
+    .petition-row { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.06); padding:14px 18px; margin-bottom:9px; border-left:3px solid #e5e7eb; transition:box-shadow .15s; }
+    .petition-row:hover { box-shadow:0 3px 12px rgba(0,0,0,.1); }
+
+    .pid  { font-family:monospace; font-size:.77rem; color:#6b7280; }
+    .pcat { font-weight:600; font-size:.92rem; color:#111827; }
+    .pdesc { font-size:.8rem; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:440px; }
+    .pdate { font-size:.74rem; color:#9ca3af; }
+
+    .bs { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+    .bs-direct   { background:#fef3c7; color:#92400e; }
+    .bs-oadrop   { background:#fef3c7; color:#b45309; }
+    .bs-fwdact   { background:#d1fae5; color:#065f46; }
+    .bs-fwddrop  { background:#fee2e2; color:#991b1b; }
+    .bs-assigned { background:#dbeafe; color:#1d4ed8; }
+    .bs-closure  { background:#ede9fe; color:#5b21b6; }
+    .bs-closed   { background:#d1fae5; color:#065f46; }
+
+    .oa-rec { font-size:.7rem; padding:2px 8px; border-radius:10px; font-weight:600; }
+    .oa-act { background:#d1fae5; color:#065f46; }
+    .oa-drp { background:#fee2e2; color:#991b1b; }
+    .oa-drpdirect { background:#fef3c7; color:#92400e; }
+
+    .section-divider { border:none; border-top:2px dashed #e5e7eb; margin:28px 0 20px; }
+    .empty-tab { text-align:center; padding:36px; color:#9ca3af; font-size:.88rem; }
+</style>
+
+<div class="container-fluid py-4" style="max-width:1150px;">
+
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 4px;">
+                    <i class="bi bi-shield-check me-2"></i>APCCF (Vigilance) — Dashboard
+                </h2>
+                <p style="margin:0;opacity:.85;font-size:.87rem;">Karnataka Forest Department | @User.Identity?.Name</p>
+            </div>
+            <a href="/Account/Logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+        </div>
+    </div>
+
+    
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md">
+            <div class="stat-card" style="border-left-color:#f59e0b;">
+                <div class="stat-number text-warning">@Model.DirectInbox.Count</div>
+                <div class="stat-label">All petations</div>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="stat-card" style="border-left-color:#d97706;">
+                <div class="stat-number" style="color:#d97706;">@Model.OADroppedPending.Count</div>
+                <div class="stat-label">Verfied by OA</div>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="stat-card" style="border-left-color:#10b981;">
+                <div class="stat-number text-success">@(Model.FromOAForAction.Count + Model.FromOAForDrop.Count)</div>
+                <div class="stat-label">Verification Pending at OA</div>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="stat-card" style="border-left-color:#3b82f6;">
+                <div class="stat-number text-primary">@Model.Assigned.Count</div>
+                <div class="stat-label">Assigned</div>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="stat-card" style="border-left-color:#7c3aed;">
+                <div class="stat-number" style="color:#7c3aed;">@Model.PendingClosure.Count</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="stat-card" style="border-left-color:#6b7280;">
+                <div class="stat-number text-secondary">@Model.Closed.Count</div>
+                <div class="stat-label">Dropped</div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="inbox-header inbox-direct">
+        <i class="bi bi-inbox-fill fs-3" style="color:#d97706;"></i>
+        <div>
+            <div class="inbox-title">📥 Direct Inbox — All Petitions from Public (Unfiltered)</div>
+            <div class="inbox-sub">Every petition submitted appears here. This is your anti-corruption layer — if OA wrongly drops a valid petition, you can see it here and override.</div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        <button class="tab-btn active" onclick="showTab('d-all', this, 'direct')">
+            All Submissions <span class="badge bg-warning text-dark ms-1">@Model.DirectInbox.Count</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('d-oadrop', this, 'direct')">
+            ⚠ OA-Dropped (Review) <span class="badge ms-1" style="background:#d97706;">@Model.OADroppedPending.Count</span>
+        </button>
+    </div>
+
+    <div id="tab-d-all">
+        @if (!Model.DirectInbox.Any())
+        { <div class="empty-tab"><i class="bi bi-check-circle text-success fs-3"></i><br/>No petitions yet</div> }
+        @foreach (var p in Model.DirectInbox)
+        {
+            <div class="petition-row" style="border-left-color:#f59e0b;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">
+                            @(p.ComplaintCategory?.Name ?? "General")
+                            @if (p.Status == PMS.Web.Models.Enums.PetitionStatus.OADropped)
+                            { <span class="oa-rec oa-drpdirect ms-2">⚠ OA Dropped</span> }
+                            else if (p.Status == PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny)
+                            { <span class="oa-rec ms-2" style="background:#dbeafe;color:#1d4ed8;">Under Scrutiny</span> }
+                            else if (p.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction)
+                            { <span class="oa-rec oa-act ms-2">OA: For Action</span> }
+                            else if (p.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop)
+                            { <span class="oa-rec oa-drp ms-2">OA: For Drop</span> }
+                        </div>
+                        <div class="pdesc">@p.Description</div>
+                        <div class="pdate mt-1">
+                            <i class="bi bi-calendar3 me-1"></i>@p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")
+                            @if (p.LocationDistrict != null) { <span class="ms-2"><i class="bi bi-geo-alt me-1"></i>@p.LocationDistrict.Name</span> }
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-direct">Public</span>
+                        <div class="mt-2">
+                            <a href="/APCCF/PetitionDetail?id=@p.PetitionId" class="btn btn-warning btn-sm" style="font-size:.77rem;">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="tab-d-oadrop" style="display:none;">
+        @if (!Model.OADroppedPending.Any())
+        { <div class="empty-tab">No OA-dropped petitions pending your review</div> }
+        @foreach (var p in Model.OADroppedPending)
+        {
+            <div class="petition-row" style="border-left-color:#d97706; background:#fffbeb;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                        <div class="pdate mt-1">
+                            <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                            OA Drop Reason: <strong style="color:#92400e;">@p.OADropReason</strong>
+                            <span class="ms-2">on @p.OADroppedAt?.ToLocalTime().ToString("dd MMM yyyy")</span>
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-oadrop">OA Dropped</span>
+                        <div class="mt-2">
+                            <a href="/APCCF/PetitionDetail?id=@p.PetitionId" class="btn btn-sm" style="background:#d97706;color:white;font-size:.77rem;">
+                                <i class="bi bi-shield-check me-1"></i>Review & Override
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <hr class="section-divider" />
+
+    
+    <div class="inbox-header inbox-oa">
+        <i class="bi bi-person-check-fill fs-3 text-success"></i>
+        <div>
+            <div class="inbox-title">📋 From Office Assistant — Scrutinized Petitions</div>
+            <div class="inbox-sub">Petitions reviewed by the Office Assistant with a recommendation. Take final action — assign to field officer or drop.</div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        <button class="tab-btn active" onclick="showTab('oa-act', this, 'oa')">
+            For Action <span class="badge bg-success ms-1">@Model.FromOAForAction.Count</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('oa-drp', this, 'oa')">
+            For Drop <span class="badge bg-danger ms-1">@Model.FromOAForDrop.Count</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('oa-asgn', this, 'oa')">
+            Assigned <span class="badge bg-primary ms-1">@Model.Assigned.Count</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('oa-cls', this, 'oa')">
+            Pending Closure <span class="badge ms-1" style="background:#7c3aed;">@Model.PendingClosure.Count</span>
+        </button>
+        <button class="tab-btn" onclick="showTab('oa-done', this, 'oa')">
+            Closed <span class="badge bg-secondary ms-1">@Model.Closed.Count</span>
+        </button>
+    </div>
+
+    @{
+        void OARow(PMS.Web.Models.Entities.Petition p, string recClass, string recLabel, string btnColor)
+        {
+            <div class="petition-row" style="border-left-color:#10b981;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">
+                            @(p.ComplaintCategory?.Name ?? "General")
+                            <span class="oa-rec @recClass ms-2">OA: @recLabel</span>
+                        </div>
+                        <div class="pdesc">@p.Description</div>
+                        <div class="pdate mt-1">
+                            <i class="bi bi-calendar3 me-1"></i>@p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")
+                            @if (!string.IsNullOrEmpty(p.OARemarks)) { <span class="ms-2">· @p.OARemarks</span> }
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <div class="mt-1">
+                            <a href="/APCCF/PetitionDetail?id=@p.PetitionId" class="btn btn-sm"
+                               style="background:@btnColor;color:white;font-size:.77rem;">
+                                <i class="bi bi-check-circle me-1"></i>Decide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <div id="tab-oa-act">
+        @if (!Model.FromOAForAction.Any()) { <div class="empty-tab">No petitions recommended for action</div> }
+        @foreach (var p in Model.FromOAForAction) { OARow(p, "oa-act", "For Action", "#1a5c2a"); }
+    </div>
+
+    <div id="tab-oa-drp" style="display:none;">
+        @if (!Model.FromOAForDrop.Any()) { <div class="empty-tab">No petitions recommended for drop</div> }
+        @foreach (var p in Model.FromOAForDrop) { OARow(p, "oa-drp", "For Drop", "#dc2626"); }
+    </div>
+
+    <div id="tab-oa-asgn" style="display:none;">
+        @if (!Model.Assigned.Any()) { <div class="empty-tab">No assigned petitions</div> }
+        @foreach (var p in Model.Assigned)
+        {
+            <div class="petition-row" style="border-left-color:#3b82f6;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdate mt-1">
+                            Assigned → <strong>@(p.AssignedOfficer?.Name ?? "—")</strong>
+                            (@p.AssignedOfficeType) on @p.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy")
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-assigned">Assigned</span>
+                        <div class="mt-1"><a href="/APCCF/PetitionDetail?id=@p.PetitionId" class="btn btn-primary btn-sm" style="font-size:.77rem;"><i class="bi bi-eye me-1"></i>View</a></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="tab-oa-cls" style="display:none;">
+        @if (!Model.PendingClosure.Any()) { <div class="empty-tab">No petitions pending closure</div> }
+        @foreach (var p in Model.PendingClosure)
+        {
+            <div class="petition-row" style="border-left-color:#7c3aed;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-closure">Pending Closure</span>
+                        <div class="mt-1"><a href="/APCCF/PetitionDetail?id=@p.PetitionId" class="btn btn-sm" style="background:#7c3aed;color:white;font-size:.77rem;"><i class="bi bi-check2-circle me-1"></i>Decide</a></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="tab-oa-done" style="display:none;">
+        @if (!Model.Closed.Any()) { <div class="empty-tab">No closed petitions</div> }
+        @foreach (var p in Model.Closed)
+        {
+            <div class="petition-row" style="border-left-color:#10b981;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1;min-width:0;">
+                        <div class="pid"># @p.PetitionApplicationId</div>
+                        <div class="pcat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="pdesc">@p.Description</div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="bs bs-closed">Closed</span>
+                        <div class="mt-1"><a href="/APCCF/PetitionDetail?id=@p.PetitionId" class="btn btn-secondary btn-sm" style="font-size:.77rem;"><i class="bi bi-eye me-1"></i>View</a></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+<script>
+    const groups = {
+        direct: ['d-all','d-oadrop'],
+        oa:     ['oa-act','oa-drp','oa-asgn','oa-cls','oa-done']
+    };
+    function showTab(name, btn, group) {
+        groups[group].forEach(t => document.getElementById('tab-' + t).style.display = 'none');
+        document.getElementById('tab-' + name).style.display = 'block';
+        btn.closest('.d-flex').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+</script>

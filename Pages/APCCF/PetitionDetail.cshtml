@@ -1,0 +1,587 @@
+@page
+@model PMS.Web.Pages.APCCF.PetitionDetailModel
+@{
+    ViewData["Title"] = "Petition Detail — APCCF";
+    var p = Model.Petition;
+    bool isOADropped      = p?.Status == PMS.Web.Models.Enums.PetitionStatus.OADropped;
+    bool isForAction      = p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction;
+    bool isForDrop        = p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop;
+    bool isSubmitted      = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Submitted;
+    bool isUnderScrutiny  = p?.Status == PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny;
+    bool isAssigned       = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Assigned;
+    bool isInProgress     = p?.Status == PMS.Web.Models.Enums.PetitionStatus.InProgress;
+    bool isPendingClosure = p?.Status == PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure;
+    bool isClosed         = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Closed;
+    bool isDropped        = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Dropped;
+    bool canAssign        = isSubmitted || isUnderScrutiny || isForAction || isForDrop || isOADropped;
+}
+
+<style>
+    .page-header { background: linear-gradient(135deg,#1a3a5c 0%,#2563eb 100%); color:white; padding:22px 28px; border-radius:10px; margin-bottom:24px; }
+    .detail-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:20px; }
+    .section-title { font-size:.85rem; font-weight:700; color:#1a3a5c; border-left:3px solid #2563eb; padding-left:10px; margin-bottom:16px; text-transform:uppercase; letter-spacing:.4px; }
+    .detail-row { display:flex; margin-bottom:10px; align-items:flex-start; }
+    .detail-label { font-size:.82rem; color:#6b7280; font-weight:500; min-width:160px; }
+    .detail-value { font-size:.88rem; color:#111827; font-weight:500; }
+    .desc-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px 16px; font-size:.88rem; color:#374151; line-height:1.6; }
+
+    .attach-item { display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:6px; padding:5px 12px; font-size:.8rem; margin:4px; color:#374151; text-decoration:none; }
+    .attach-item:hover { background:#e5e7eb; }
+    .attach-img { width:80px; height:60px; object-fit:cover; border-radius:4px; border:1px solid #e5e7eb; cursor:pointer; }
+
+    .action-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:16px; }
+    .action-option { border:2px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:12px; }
+    .action-option.assign  { border-color:#86efac; background:#f0fdf4; }
+    .action-option.drop    { border-color:#fca5a5; background:#fff5f5; }
+    .action-option.override{ border-color:#fcd34d; background:#fffbeb; }
+    .action-option.accept  { border-color:#86efac; background:#f0fdf4; }
+    .action-option.reject  { border-color:#fca5a5; background:#fff5f5; }
+    .action-title { font-weight:700; font-size:.9rem; margin-bottom:10px; }
+
+    .form-label { font-weight:500; font-size:.875rem; color:#374151; }
+    .form-control,.form-select { border-radius:6px; border:1px solid #d1d5db; font-size:.88rem; }
+    .form-control:focus,.form-select:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+
+    .btn-assign  { background:#1a5c2a; color:white; border:none; padding:9px 22px; border-radius:7px; font-weight:600; font-size:.85rem; }
+    .btn-drop    { background:#dc2626; color:white; border:none; padding:9px 22px; border-radius:7px; font-weight:600; font-size:.85rem; }
+    .btn-override{ background:#d97706; color:white; border:none; padding:9px 22px; border-radius:7px; font-weight:600; font-size:.85rem; }
+    .btn-accept  { background:#1a5c2a; color:white; border:none; padding:9px 22px; border-radius:7px; font-weight:600; font-size:.85rem; }
+    .btn-resend  { background:#7c3aed; color:white; border:none; padding:9px 22px; border-radius:7px; font-weight:600; font-size:.85rem; }
+    .btn-reassign{ background:#dc2626; color:white; border:none; padding:9px 22px; border-radius:7px; font-weight:600; font-size:.85rem; }
+
+    .badge-status { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .bs-new      { background:#fef3c7; color:#92400e; }
+    .bs-scrutiny { background:#dbeafe; color:#1d4ed8; }
+    .bs-oadrop   { background:#fef3c7; color:#b45309; }
+    .bs-action   { background:#d1fae5; color:#065f46; }
+    .bs-droprec  { background:#fee2e2; color:#991b1b; }
+    .bs-assigned { background:#dbeafe; color:#1d4ed8; }
+    .bs-inprog   { background:#ede9fe; color:#5b21b6; }
+    .bs-closure  { background:#fce7f3; color:#9d174d; }
+    .bs-closed   { background:#d1fae5; color:#065f46; }
+    .bs-dropped  { background:#fee2e2; color:#991b1b; }
+
+    .oa-rec-box { border-radius:8px; padding:14px 16px; margin-bottom:12px; }
+    .oa-rec-action { background:#f0fdf4; border:1px solid #86efac; }
+    .oa-rec-drop   { background:#fff5f5; border:1px solid #fca5a5; }
+    .oa-rec-direct { background:#fffbeb; border:1px solid #fcd34d; }
+
+    .timeline { position:relative; padding-left:28px; }
+    .timeline::before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:#e5e7eb; }
+    .timeline-item { position:relative; margin-bottom:18px; }
+    .tl-dot { position:absolute; left:-24px; top:4px; width:14px; height:14px; border-radius:50%; background:#2563eb; border:2px solid #fff; box-shadow:0 0 0 2px #bfdbfe; }
+    .tl-label { font-weight:600; font-size:.87rem; color:#111827; }
+    .tl-by    { font-size:.75rem; color:#6b7280; margin-top:1px; }
+    .tl-date  { font-size:.75rem; color:#9ca3af; margin-top:1px; }
+
+    .report-card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:12px; }
+    .report-type { font-size:.75rem; font-weight:700; padding:2px 8px; border-radius:10px; }
+    .rt-interim { background:#dbeafe; color:#1d4ed8; }
+    .rt-final   { background:#ede9fe; color:#5b21b6; }
+
+    .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; justify-content:center; align-items:center; }
+    .lightbox.open { display:flex; }
+    .lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
+    .lightbox-close { position:absolute; top:20px; right:28px; color:white; font-size:2rem; cursor:pointer; }
+</style>
+
+<div class="container py-4" style="max-width:980px;">
+
+@if (p == null)
+{
+    <div class="alert alert-warning">Petition not found.</div>
+}
+else
+{
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <div style="font-size:.8rem;opacity:.8;"># @p.PetitionApplicationId</div>
+                <h2 class="mb-0" style="font-size:1.25rem;">@(p.ComplaintCategory?.Name ?? "Petition Detail")</h2>
+            </div>
+            <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
+        </div>
+    </div>
+
+    <a href="/APCCF/Dashboard" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success mb-3"><i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+
+            @* Complainant *@
+            <div class="detail-card">
+                <div class="section-title">Complainant</div>
+                <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
+                <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
+                @if (!string.IsNullOrEmpty(p.HouseNo) || !string.IsNullOrEmpty(p.Street))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Address</span>
+                        <span class="detail-value">@string.Join(", ", new[]{p.HouseNo,p.Street,p.Area}.Where(s=>!string.IsNullOrEmpty(s)))</span>
+                    </div>
+                }
+                <div class="detail-row">
+                    <span class="detail-label">District / Taluk</span>
+                    <span class="detail-value">
+                        @(p.ComplainantDistrict?.Name ?? "—")@if(p.ComplainantTaluk!=null){<text> / @p.ComplainantTaluk.Name</text>}
+                    </span>
+                </div>
+            </div>
+
+            @* Complaint *@
+            <div class="detail-card">
+                <div class="section-title">Complaint Details</div>
+                <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">@(p.ComplaintCategory?.Name ?? "—")</span></div>
+                <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">@p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span></div>
+                <div class="detail-row">
+                    <span class="detail-label">Incident Location</span>
+                    <span class="detail-value">
+                        @(p.LocationDistrict?.Name ?? "—")@if(p.LocationTaluk!=null){<text> / @p.LocationTaluk.Name</text>}
+                    </span>
+                </div>
+                <div class="mt-3">
+                    <div class="detail-label mb-1">Description</div>
+                    <div class="desc-box">@p.Description</div>
+                </div>
+            </div>
+
+            @* Attachments *@
+            @if (p.Attachments.Any())
+            {
+                <div class="detail-card">
+                    <div class="section-title">Attachments</div>
+                    @{var docs = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Document).ToList();}
+                    @{var photos = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Photo).ToList();}
+                    @if (docs.Any())
+                    {
+                        <div class="mb-2">
+                            <div style="font-size:.8rem;font-weight:700;color:#6b7280;margin-bottom:6px;"><i class="bi bi-file-earmark-pdf text-danger me-1"></i>DOCUMENTS</div>
+                            @foreach (var a in docs)
+                            {
+                                <a href="/uploads/petitions/@p.PetitionId/@a.StoredFileName" target="_blank" class="attach-item">
+                                    <i class="bi bi-file-earmark-pdf text-danger"></i> @a.OriginalFileName
+                                    <span style="color:#9ca3af;">(@((a.FileSizeBytes/1024.0).ToString("0.#"))KB)</span>
+                                </a>
+                            }
+                        </div>
+                    }
+                    @if (photos.Any())
+                    {
+                        <div>
+                            <div style="font-size:.8rem;font-weight:700;color:#6b7280;margin-bottom:6px;"><i class="bi bi-image text-success me-1"></i>PHOTOS</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var a in photos)
+                                {
+                                    <img src="/uploads/petitions/@p.PetitionId/@a.StoredFileName"
+                                         class="attach-img" onclick="openLightbox(this.src)" title="@a.OriginalFileName" />
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Action Reports *@
+            @if (p.ActionReports.Any())
+            {
+                <div class="detail-card">
+                    <div class="section-title">Field Officer Reports</div>
+                    @foreach (var r in p.ActionReports)
+                    {
+                        <div class="report-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="report-type @(r.ReportType == PMS.Web.Models.Enums.ReportType.Final ? "rt-final" : "rt-interim")">
+                                    @r.ReportType Report
+                                </span>
+                                <span style="font-size:.75rem;color:#9ca3af;">@r.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span>
+                            </div>
+                            <div style="font-size:.87rem;color:#374151;line-height:1.6;">@r.ReportText</div>
+                            @if (r.Attachments.Any())
+                            {
+                                <div class="mt-2">
+                                    @foreach (var a in r.Attachments)
+                                    {
+                                        <a href="/uploads/reports/@r.ReportId/@a.StoredFileName" target="_blank" class="attach-item">
+                                            <i class="bi bi-paperclip"></i> @a.OriginalFileName
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            @if (r.IsApproved.HasValue)
+                            {
+                                <div class="mt-2 p-2 rounded" style="background:@(r.IsApproved.Value ? "#f0fdf4" : "#fff5f5");font-size:.82rem;">
+                                    <strong>APCCF Decision:</strong> @(r.IsApproved.Value ? "✅ Accepted" : "❌ Rejected")
+                                    @if (!string.IsNullOrEmpty(r.APCCFDecisionRemarks))
+                                    { <span> — @r.APCCFDecisionRemarks</span> }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+
+        <div class="col-lg-5">
+
+            @* OA Recommendation *@
+            @if (p.OARecommendation.HasValue || isOADropped)
+            {
+                <div class="detail-card">
+                    <div class="section-title">OA Recommendation</div>
+                    @if (isOADropped)
+                    {
+                        <div class="oa-rec-box oa-rec-direct">
+                            <div style="font-weight:700;font-size:.88rem;color:#92400e;">⚠ Dropped by Office Assistant</div>
+                            <div style="font-size:.83rem;margin-top:6px;"><strong>Reason:</strong> @p.OADropReason</div>
+                            <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">@p.OADroppedAt?.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div>
+                        </div>
+                    }
+                    else if (p.OARecommendation == PMS.Web.Models.Enums.OARecommendation.ForAction)
+                    {
+                        <div class="oa-rec-box oa-rec-action">
+                            <div style="font-weight:700;font-size:.88rem;color:#065f46;">✅ Recommended For Action</div>
+                            @if (p.RecommendedOfficer != null)
+                            {
+                                <div style="font-size:.83rem;margin-top:6px;">
+                                    Suggested Officer: <strong>@p.RecommendedOfficer.Name</strong>
+                                    (@p.RecommendedOfficeType)
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(p.OARemarks))
+                            {
+                                <div style="font-size:.82rem;color:#6b7280;margin-top:4px;">@p.OARemarks</div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="oa-rec-box oa-rec-drop">
+                            <div style="font-weight:700;font-size:.88rem;color:#991b1b;">❌ Recommended For Drop</div>
+                            @if (!string.IsNullOrEmpty(p.OARemarks))
+                            {
+                                <div style="font-size:.83rem;margin-top:6px;">@p.OARemarks</div>
+                            }
+                        </div>
+                    }
+                    @if (p.ScrutinizedBy != null)
+                    {
+                        <div style="font-size:.78rem;color:#9ca3af;margin-top:8px;">
+                            Scrutinized by: @p.ScrutinizedBy.Name
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Assignment Info *@
+            @if (p.AssignedOfficer != null)
+            {
+                <div class="detail-card">
+                    <div class="section-title">Assignment</div>
+                    <div class="detail-row"><span class="detail-label">Officer</span><span class="detail-value">@p.AssignedOfficer.Name</span></div>
+                    <div class="detail-row"><span class="detail-label">Office Type</span><span class="detail-value">@p.AssignedOfficeType</span></div>
+                    @if (p.AssignedAt.HasValue)
+                    {
+                        <div class="detail-row"><span class="detail-label">Assigned On</span><span class="detail-value">@p.AssignedAt.Value.ToLocalTime().ToString("dd MMM yyyy")</span></div>
+                    }
+                    @if (!string.IsNullOrEmpty(p.APCCFRemarks))
+                    {
+                        <div class="detail-row"><span class="detail-label">Remarks</span><span class="detail-value">@p.APCCFRemarks</span></div>
+                    }
+                </div>
+            }
+
+            @* Timeline *@
+            @if (p.WorkflowLogs.Any())
+            {
+                <div class="detail-card">
+                    <div class="section-title">Timeline</div>
+                    <div class="timeline">
+                        @foreach (var log in p.WorkflowLogs.OrderBy(l => l.ActionAt))
+                        {
+                            <div class="timeline-item">
+                                <div class="tl-dot"></div>
+                                <div class="tl-label">@(log.PublicLabel ?? log.Action)</div>
+                                @if (log.ActorUser != null)
+                                {
+                                    <div class="tl-by">by @log.ActorUser.Name</div>
+                                }
+                                <div class="tl-date">@log.ActionAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div>
+                                @if (!string.IsNullOrEmpty(log.InternalRemarks))
+                                {
+                                    <div style="font-size:.75rem;color:#6b7280;margin-top:2px;">@log.InternalRemarks</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* APCCF Actions *@
+            @if (!isClosed && !isDropped)
+            {
+                <form method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="PetitionId" value="@p.PetitionId" />
+
+                    @* Pending Closure — Accept or Reject final report *@
+                    @if (isPendingClosure)
+                    {
+                        var finalReport = p.ActionReports.FirstOrDefault(r =>
+                            r.ReportType == PMS.Web.Models.Enums.ReportType.Final && !r.IsApproved.HasValue);
+                        if (finalReport != null)
+                        {
+                            <input type="hidden" name="ReportId" value="@finalReport.ReportId" />
+                            <div class="action-card">
+                                <div class="section-title">Final Report Decision</div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Remarks</label>
+                                    <textarea name="Remarks" class="form-control" rows="2"
+                                              placeholder="Add your remarks..."></textarea>
+                                </div>
+
+                                <div class="action-option accept mb-2">
+                                    <div class="action-title" style="color:#065f46;">✅ Accept & Close</div>
+                                    <p style="font-size:.82rem;color:#374151;margin-bottom:10px;">
+                                        Accept the final report and close this petition.
+                                    </p>
+                                    <button type="submit" name="action" value="accept" class="btn-accept btn w-100">
+                                        <i class="bi bi-check-circle me-1"></i>Accept & Close Petition
+                                    </button>
+                                </div>
+
+                                <div class="action-option reject mb-2">
+                                    <div class="action-title" style="color:#991b1b;">↩ Reject & Resend</div>
+                                    <p style="font-size:.82rem;color:#374151;margin-bottom:10px;">
+                                        Reject report and send back to same officer for revision.
+                                    </p>
+                                    <button type="submit" name="action" value="resend" class="btn-resend btn w-100">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reject & Resend to Same Officer
+                                    </button>
+                                </div>
+
+                                <div class="action-option reject">
+                                    <div class="action-title" style="color:#991b1b;">🔄 Reject & Reassign</div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label">New Office Type</label>
+                                            <select name="OfficeType" class="form-select form-select-sm"
+                                                    onchange="filterOfficers(this.value, 'reassignOfficer')">
+                                                <option value="">— Select —</option>
+                                                <option value="Circle">Circle</option>
+                                                <option value="Division">Division</option>
+                                                <option value="FMSDivision">FMS Division</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">New Officer</label>
+                                            <select name="AssignedOfficerId" id="reassignOfficer" class="form-select form-select-sm">
+                                                <option value="">— Select Officer —</option>
+                                                @foreach (var o in Model.FieldOfficers)
+                                                {
+                                                    <option value="@o.UserId" data-office="@o.OfficeType">@o.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="submit" name="action" value="reassign" class="btn-reassign btn w-100">
+                                        <i class="bi bi-person-x me-1"></i>Reject & Reassign New Officer
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @* Assign / Override / Drop *@
+                    @if (canAssign)
+                    {
+                        <div class="action-card">
+                            <div class="section-title">
+                                @if (isOADropped) { <text>Override OA Drop & Assign</text> }
+                                else { <text>Assign to Field Officer</text> }
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Remarks (Optional)</label>
+                                <textarea name="Remarks" class="form-control" rows="2"
+                                          placeholder="Add remarks..."></textarea>
+                            </div>
+
+                            @* Assign / Override *@
+                            <div class="action-option @(isOADropped ? "override" : "assign") mb-3">
+                                <div class="action-title" style="color:@(isOADropped ? "#92400e" : "#065f46")">
+                                    @if (isOADropped)
+                                    { <text><i class="bi bi-shield-check me-1"></i>Override & Assign to Officer</text> }
+                                    else
+                                    { <text><i class="bi bi-person-check me-1"></i>Assign to Field Officer</text> }
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">Office Type</label>
+                                        <select name="OfficeType" class="form-select form-select-sm"
+                                                onchange="filterOfficers(this.value, 'assignOfficer')">
+                                            <option value="">— Select —</option>
+                                            <option value="Circle">Circle</option>
+                                            <option value="Division">Division</option>
+                                            <option value="FMSDivision">FMS Division</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Officer</label>
+                                        <select name="AssignedOfficerId" id="assignOfficer" class="form-select form-select-sm">
+                                            <option value="">— Select Officer —</option>
+                                            @foreach (var o in Model.FieldOfficers)
+                                            {
+                                                <option value="@o.UserId" data-office="@o.OfficeType">@o.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit"
+                                                name="action"
+                                                value="@(isOADropped ? "override" : "assign")"
+                                                class="@(isOADropped ? "btn-override" : "btn-assign") btn w-100">
+                                            <i class="bi bi-send me-1"></i>
+                                            @(isOADropped ? "Override & Assign" : "Assign Officer")
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @* Drop *@
+                            <div class="action-option drop">
+                                <div class="action-title" style="color:#991b1b;">
+                                    <i class="bi bi-x-circle me-1"></i>Drop Petition
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="form-label">Drop Reason <span class="text-danger">*</span></label>
+                                        <input type="text" name="DropReason" class="form-control form-control-sm"
+                                               placeholder="Reason for dropping this petition..." />
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" name="action" value="drop"
+                                                class="btn-drop btn w-100"
+                                                onclick="return confirm('Are you sure you want to drop this petition?')">
+                                            <i class="bi bi-x-circle me-1"></i>Drop Petition
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @* Already Assigned / In Progress — can still drop *@
+                    @if (isAssigned || isInProgress)
+                    {
+                        <div class="action-card">
+                            <div class="section-title">Actions</div>
+                            <div class="action-option drop">
+                                <div class="action-title" style="color:#991b1b;">
+                                    <i class="bi bi-x-circle me-1"></i>Drop Petition
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="form-label">Drop Reason <span class="text-danger">*</span></label>
+                                        <input type="text" name="DropReason" class="form-control form-control-sm"
+                                               placeholder="Reason..." />
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" name="action" value="drop"
+                                                class="btn-drop btn w-100"
+                                                onclick="return confirm('Drop this petition?')">
+                                            <i class="bi bi-x-circle me-1"></i>Drop
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </form>
+            }
+
+            @* Final state *@
+            @if (isClosed)
+            {
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>Petition Closed</strong> — This petition has been resolved and closed.
+                </div>
+            }
+            @if (isDropped)
+            {
+                <div class="alert alert-secondary">
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    <strong>Petition Dropped</strong> — @p.APCCFRemarks
+                </div>
+            }
+
+        </div>
+    </div>
+}
+</div>
+
+@* Lightbox *@
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImg" src="" />
+</div>
+
+<script>
+    function filterOfficers(officeType, selectId) {
+        var sel = document.getElementById(selectId);
+        if (!sel) return;
+        sel.querySelectorAll('option[data-office]').forEach(function(o) {
+            o.style.display = (!officeType || o.dataset.office === officeType) ? '' : 'none';
+        });
+        sel.value = '';
+    }
+    function openLightbox(src) {
+        document.getElementById('lightboxImg').src = src;
+        document.getElementById('lightbox').classList.add('open');
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('open');
+    }
+</script>
+
+@functions {
+    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted            => "bs-new",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny        => "bs-scrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.OADropped            => "bs-oadrop",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction => "bs-action",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop   => "bs-droprec",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned             => "bs-assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress           => "bs-inprog",
+        PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure  => "bs-closure",
+        PMS.Web.Models.Enums.PetitionStatus.Closed               => "bs-closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped              => "bs-dropped",
+        _ => "bs-new"
+    };
+    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted            => "New",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny        => "Under Scrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.OADropped            => "Dropped by OA",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction => "For Action",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop   => "For Drop",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned             => "Assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress           => "In Progress",
+        PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure  => "Pending Closure",
+        PMS.Web.Models.Enums.PetitionStatus.Closed               => "Closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped              => "Dropped",
+        _ => s.ToString()
+    };
+}

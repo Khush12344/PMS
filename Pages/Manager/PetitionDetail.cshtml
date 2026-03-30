@@ -1,0 +1,277 @@
+@page
+@model PMS.Web.Pages.Manager.PetitionDetailModel
+@{
+    ViewData["Title"] = "Petition Detail — Manager";
+    var p = Model.Petition;
+    bool isNew      = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Submitted;
+    bool isSentBack = p?.Status == PMS.Web.Models.Enums.PetitionStatus.SentToManager;
+    bool isReadOnly = !isNew && !isSentBack;
+}
+
+<style>
+    .page-header { background:linear-gradient(135deg,#1a3a5c 0%,#1e6091 100%); color:white; padding:22px 28px; border-radius:10px; margin-bottom:24px; }
+    .detail-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:20px; }
+    .section-title { font-size:.85rem; font-weight:700; color:#1a3a5c; border-left:3px solid #1e6091; padding-left:10px; margin-bottom:16px; text-transform:uppercase; }
+    .detail-row { display:flex; margin-bottom:10px; align-items:flex-start; }
+    .detail-label { font-size:.82rem; color:#6b7280; font-weight:500; min-width:155px; }
+    .detail-value { font-size:.88rem; color:#111827; font-weight:500; }
+    .desc-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px 16px; font-size:.88rem; color:#374151; line-height:1.6; }
+
+    .action-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:16px; }
+    .action-option { border:2px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:12px; }
+    .action-option.assign { border-color:#93c5fd; background:#eff6ff; }
+    .action-option.summary { border-color:#c4b5fd; background:#f5f3ff; }
+
+    .form-label { font-weight:500; font-size:.875rem; color:#374151; }
+    .form-control,.form-select { border-radius:6px; border:1px solid #d1d5db; font-size:.88rem; }
+    .form-control:focus,.form-select:focus { border-color:#1e6091; box-shadow:0 0 0 3px rgba(30,96,145,.1); }
+
+    .badge-status { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .bs-new      { background:#fef3c7; color:#92400e; }
+    .bs-oa       { background:#dbeafe; color:#1d4ed8; }
+    .bs-sentback { background:#fce7f3; color:#9d174d; }
+    .bs-other    { background:#f3f4f6; color:#374151; }
+
+    .timeline { position:relative; padding-left:28px; }
+    .timeline::before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:#e5e7eb; }
+    .timeline-item { position:relative; margin-bottom:18px; }
+    .tl-dot { position:absolute; left:-24px; top:4px; width:14px; height:14px; border-radius:50%; background:#1e6091; border:2px solid #fff; box-shadow:0 0 0 2px #bfdbfe; }
+    .tl-label { font-weight:600; font-size:.87rem; color:#111827; }
+    .tl-by    { font-size:.75rem; color:#6b7280; }
+    .tl-date  { font-size:.75rem; color:#9ca3af; }
+</style>
+
+<div class="container py-4" style="max-width:920px;">
+
+@if (p == null)
+{
+    <div class="alert alert-warning">Petition not found.</div>
+}
+else
+{
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <div style="font-size:.8rem;opacity:.8;"># @p.PetitionApplicationId</div>
+                <h2 class="mb-0" style="font-size:1.25rem;">@(p.ComplaintCategory?.Name ?? "Petition Detail")</h2>
+            </div>
+            <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
+        </div>
+    </div>
+
+    <a href="/Manager/Dashboard" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success mb-3"><i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+
+            @* Complainant *@
+            <div class="detail-card">
+                <div class="section-title">Complainant</div>
+                <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
+                <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
+                <div class="detail-row">
+                    <span class="detail-label">District / Taluk</span>
+                    <span class="detail-value">
+                        @(p.ComplainantDistrict?.Name ?? "—")@if(p.ComplainantTaluk!=null){<text> / @p.ComplainantTaluk.Name</text>}
+                    </span>
+                </div>
+            </div>
+
+            @* Complaint *@
+            <div class="detail-card">
+                <div class="section-title">Complaint Details</div>
+                <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">@(p.ComplaintCategory?.Name ?? "—")</span></div>
+                <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">@p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span></div>
+                <div class="detail-row">
+                    <span class="detail-label">Incident Location</span>
+                    <span class="detail-value">
+                        @(p.LocationDistrict?.Name ?? "—")@if(p.LocationTaluk!=null){<text> / @p.LocationTaluk.Name</text>}
+                    </span>
+                </div>
+                <div class="mt-3">
+                    <div class="detail-label mb-1">Description</div>
+                    <div class="desc-box">@p.Description</div>
+                </div>
+            </div>
+
+            @* FO Reports (if any) *@
+            @if (p.ActionReports.Any())
+            {
+                <div class="detail-card">
+                    <div class="section-title">Field Officer Reports</div>
+                    @foreach (var r in p.ActionReports)
+                    {
+                        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:10px;">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span style="font-size:.73rem;font-weight:700;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1d4ed8;">
+                                    @r.ReportType Report
+                                </span>
+                                <span style="font-size:.75rem;color:#9ca3af;">@r.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</span>
+                            </div>
+                            <div style="font-size:.87rem;color:#374151;">@r.ReportText</div>
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+
+        <div class="col-lg-5">
+
+            @* Timeline *@
+            @if (p.WorkflowLogs.Any())
+            {
+                <div class="detail-card">
+                    <div class="section-title">Timeline</div>
+                    <div class="timeline">
+                        @foreach (var log in p.WorkflowLogs.OrderBy(l => l.ActionAt))
+                        {
+                            <div class="timeline-item">
+                                <div class="tl-dot"></div>
+                                <div class="tl-label">@(log.PublicLabel ?? log.Action)</div>
+                                @if (log.ActorUser != null)
+                                {
+                                    <div class="tl-by">by @log.ActorUser.Name</div>
+                                }
+                                <div class="tl-date">@log.ActionAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* Current OA *@
+            @if (p.AssignedOA != null)
+            {
+                <div class="detail-card">
+                    <div class="section-title">Assigned OA</div>
+                    <div class="detail-row">
+                        <span class="detail-label">OA Name</span>
+                        <span class="detail-value">@p.AssignedOA.Name</span>
+                    </div>
+                    @if (p.AssignedToOAAt.HasValue)
+                    {
+                        <div class="detail-row">
+                            <span class="detail-label">Assigned On</span>
+                            <span class="detail-value">@p.AssignedToOAAt.Value.ToLocalTime().ToString("dd MMM yyyy")</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Manager Actions *@
+            @if (isNew || isSentBack)
+            {
+                <form method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="PetitionId" value="@p.PetitionId" />
+
+                    <div class="action-card">
+                        <div class="section-title">
+                            @if (isSentBack) { <text>Assign OA for Summary</text> }
+                            else { <text>Assign to Office Assistant</text> }
+                        </div>
+
+                        @if (isSentBack)
+                        {
+                            <div class="alert alert-warning py-2 mb-3" style="font-size:.83rem;">
+                                <i class="bi bi-arrow-return-left me-1"></i>
+                                <strong>APCCF sent this back.</strong> Assign an OA to summarize the FO report.
+                                @if (!string.IsNullOrEmpty(p.APCCFRemarks))
+                                {
+                                    <div class="mt-1">APCCF Remarks: @p.APCCFRemarks</div>
+                                }
+                            </div>
+                        }
+
+                        <div class="action-option @(isSentBack ? "summary" : "assign")">
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <label class="form-label">
+                                        Select OA <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="SelectedOAId" class="form-select">
+                                        <option value="">— Select Office Assistant —</option>
+                                        @foreach (var oa in Model.OAUsers)
+                                        {
+                                            @if (p.AssignedOAId == oa.UserId)
+                                            {
+                                                <option value="@oa.UserId" selected>@oa.Name (previously assigned)</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@oa.UserId">@oa.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Remarks (Optional)</label>
+                                    <textarea name="Remarks" class="form-control" rows="2"
+                                              placeholder="Add remarks for OA..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit"
+                                            name="action"
+                                            value="@(isSentBack ? "assignsummary" : "assignoa")"
+                                            class="btn w-100"
+                                            style="background:#1a3a5c;color:white;border:none;padding:10px;border-radius:7px;font-weight:600;">
+                                        <i class="bi bi-send me-2"></i>
+                                        @(isSentBack ? "Assign for Summary" : "Assign OA")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            }
+            else if (isReadOnly)
+            {
+                <div class="alert alert-info" style="font-size:.85rem;">
+                    <i class="bi bi-info-circle me-2"></i>
+                    This petition is currently <strong>@GetStatusLabel(p.Status)</strong>.
+                    No action required from Manager at this stage.
+                </div>
+            }
+
+        </div>
+    </div>
+}
+</div>
+
+@functions {
+    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted     => "bs-new",
+        PMS.Web.Models.Enums.PetitionStatus.AssignedToOA  => "bs-oa",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny => "bs-oa",
+        PMS.Web.Models.Enums.PetitionStatus.SentToManager => "bs-sentback",
+        _ => "bs-other"
+    };
+    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted            => "New — Pending Assignment",
+        PMS.Web.Models.Enums.PetitionStatus.AssignedToOA         => "Assigned to OA",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny        => "Under OA Scrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.OADropped            => "Dropped by OA",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction => "Forwarded to APCCF",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop   => "Forwarded to APCCF",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned             => "Assigned to Field Officer",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress           => "In Progress",
+        PMS.Web.Models.Enums.PetitionStatus.SentToManager        => "Sent Back by APCCF",
+        PMS.Web.Models.Enums.PetitionStatus.PendingOASummary     => "OA Summarizing",
+        PMS.Web.Models.Enums.PetitionStatus.SummarySubmitted     => "Summary Submitted",
+        PMS.Web.Models.Enums.PetitionStatus.Closed               => "Closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped              => "Dropped",
+        _ => s.ToString()
+    };
+}

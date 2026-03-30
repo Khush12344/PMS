@@ -1,0 +1,222 @@
+@page
+@model PMS.Web.Pages.Portal.ComplaintDetailModel
+@{
+    ViewData["Title"] = "Complaint Details";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1a5c2a 0%, #2d8a45 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 10px;
+        margin-bottom: 28px;
+    }
+    .page-header h2 { font-size: 1.3rem; font-weight: 700; margin: 0 0 4px; }
+    .page-header p  { margin: 0; opacity: 0.85; font-size: 0.88rem; }
+
+    .detail-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 24px 28px;
+        margin-bottom: 20px;
+    }
+    .section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1a5c2a;
+        border-left: 3px solid #1a5c2a;
+        padding-left: 10px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .detail-row { display: flex; margin-bottom: 10px; }
+    .detail-label { font-size: 0.82rem; color: #6b7280; font-weight: 500; min-width: 160px; }
+    .detail-value { font-size: 0.88rem; color: #111827; font-weight: 500; }
+
+    /* Status Timeline */
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: #e5e7eb;
+    }
+    .timeline-item { position: relative; margin-bottom: 24px; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+        position: absolute;
+        left: -24px;
+        top: 4px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #9ca3af;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #e5e7eb;
+    }
+    .timeline-dot.active {
+        background: #1a5c2a;
+        box-shadow: 0 0 0 2px #bbf7d0;
+    }
+    .timeline-dot.completed { background: #16a34a; box-shadow: 0 0 0 2px #dcfce7; }
+    .timeline-dot.dropped   { background: #dc2626; box-shadow: 0 0 0 2px #fee2e2; }
+
+    .timeline-label { font-weight: 600; font-size: 0.9rem; color: #111827; }
+    .timeline-date  { font-size: 0.78rem; color: #9ca3af; margin-top: 2px; }
+    .timeline-note  { font-size: 0.82rem; color: #6b7280; margin-top: 4px; font-style: italic; }
+
+    .badge-status {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .status-submitted        { background: #dbeafe; color: #1d4ed8; }
+    .status-underscrutiny    { background: #fef3c7; color: #92400e; }
+    .status-assigned         { background: #e0e7ff; color: #3730a3; }
+    .status-inprogress       { background: #d1fae5; color: #065f46; }
+    .status-closed           { background: #d1fae5; color: #065f46; }
+    .status-dropped          { background: #fee2e2; color: #991b1b; }
+    .status-default          { background: #f3f4f6; color: #374151; }
+
+    .desc-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: 0.88rem;
+        color: #374151;
+        line-height: 1.6;
+    }
+</style>
+
+<div class="container py-4" style="max-width: 820px;">
+
+    @if (Model.Petition == null)
+    {
+        <div class="alert alert-warning">Petition not found.</div>
+    }
+    else
+    {
+        var p = Model.Petition;
+
+        <div class="page-header">
+            <h2><i class="bi bi-file-text me-2"></i>Complaint Details</h2>
+            <p># @p.PetitionApplicationId</p>
+        </div>
+
+        <a href="/Portal/MyComplaints" class="btn btn-outline-secondary btn-sm mb-4">
+            <i class="bi bi-arrow-left me-1"></i> Back to My Complaints
+        </a>
+
+        @* ── Current Status ──────────────────────────────── *@
+        <div class="detail-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div style="font-size:0.78rem; color:#6b7280; margin-bottom:4px;">CURRENT STATUS</div>
+                    <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
+                </div>
+                <div class="text-end">
+                    <div style="font-size:0.78rem; color:#6b7280;">PETITION ID</div>
+                    <div style="font-family:monospace; font-weight:700; font-size:1.1rem; color:#1a5c2a;">@p.PetitionApplicationId</div>
+                </div>
+            </div>
+        </div>
+
+        @* ── Complaint Info ──────────────────────────────── *@
+        <div class="detail-card">
+            <div class="section-title">Complaint Information</div>
+            <div class="detail-row">
+                <span class="detail-label">Category</span>
+                <span class="detail-value">@(p.ComplaintCategory?.Name ?? "—")</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Submitted On</span>
+                <span class="detail-value">@p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Incident District</span>
+                <span class="detail-value">@(p.LocationDistrict?.Name ?? "—")</span>
+            </div>
+            @if (p.LocationTaluk != null)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Incident Taluk</span>
+                    <span class="detail-value">@p.LocationTaluk.Name</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(p.LocationVillage))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Village / Town</span>
+                    <span class="detail-value">@p.LocationVillage</span>
+                </div>
+            }
+            <div class="mt-3">
+                <div style="font-size:0.82rem; color:#6b7280; font-weight:500; margin-bottom:6px;">Description</div>
+                <div class="desc-box">@p.Description</div>
+            </div>
+        </div>
+
+        @* ── Status Timeline ─────────────────────────────── *@
+        <div class="detail-card">
+            <div class="section-title">Status Timeline</div>
+            <div class="timeline">
+                @foreach (var log in Model.Petition.WorkflowLogs.OrderBy(l => l.ActionAt))
+                {
+                    bool isLast    = log == Model.Petition.WorkflowLogs.OrderBy(l => l.ActionAt).Last();
+                    bool isDropped = log.ToStatus == PMS.Web.Models.Enums.PetitionStatus.Dropped ||
+                                     log.ToStatus == PMS.Web.Models.Enums.PetitionStatus.Closed;
+                    string dotClass = isDropped ? "dropped" : (isLast ? "active" : "completed");
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot @dotClass"></div>
+                        <div class="timeline-label">@(log.PublicLabel ?? log.Action)</div>
+                        <div class="timeline-date">
+                            <i class="bi bi-clock me-1"></i>@log.ActionAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus status) => status switch
+    {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted             => "status-submitted",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny         => "status-underscrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction  => "status-underscrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop    => "status-underscrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned              => "status-assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress            => "status-inprogress",
+        PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure   => "status-inprogress",
+        PMS.Web.Models.Enums.PetitionStatus.Closed                => "status-closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped               => "status-dropped",
+        PMS.Web.Models.Enums.PetitionStatus.Reopened              => "status-assigned",
+        _                                                          => "status-default"
+    };
+
+    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus status) => status switch
+    {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted             => "Submitted",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny         => "Under Review",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction  => "Under Review",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop    => "Under Review",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned              => "Assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress            => "In Progress",
+        PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure   => "Closure Pending",
+        PMS.Web.Models.Enums.PetitionStatus.Closed                => "Closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped               => "Dropped",
+        PMS.Web.Models.Enums.PetitionStatus.Reopened              => "Reopened",
+        _                                                          => status.ToString()
+    };
+}

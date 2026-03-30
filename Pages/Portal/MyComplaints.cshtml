@@ -1,0 +1,156 @@
+@page
+@model PMS.Web.Pages.Portal.MyComplaintsModel
+@{
+    ViewData["Title"] = "My Complaints";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1a5c2a 0%, #2d8a45 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 10px;
+        margin-bottom: 28px;
+    }
+    .page-header h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; }
+    .page-header p  { margin: 0; opacity: 0.85; font-size: 0.88rem; }
+
+    .complaint-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 20px 24px;
+        margin-bottom: 16px;
+        border-left: 4px solid #e5e7eb;
+        transition: box-shadow 0.2s, border-color 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+    }
+    .complaint-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        border-left-color: #1a5c2a;
+        color: inherit;
+        text-decoration: none;
+    }
+    .complaint-id   { font-size: 0.8rem; color: #6b7280; font-family: monospace; }
+    .complaint-cat  { font-weight: 600; font-size: 1rem; color: #111827; margin: 4px 0; }
+    .complaint-desc { font-size: 0.85rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px; }
+    .complaint-date { font-size: 0.78rem; color: #9ca3af; margin-top: 6px; }
+
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .status-submitted        { background: #dbeafe; color: #1d4ed8; }
+    .status-underscrutiny    { background: #fef3c7; color: #92400e; }
+    .status-assigned         { background: #e0e7ff; color: #3730a3; }
+    .status-inprogress       { background: #d1fae5; color: #065f46; }
+    .status-closed           { background: #d1fae5; color: #065f46; }
+    .status-dropped          { background: #fee2e2; color: #991b1b; }
+    .status-default          { background: #f3f4f6; color: #374151; }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .empty-state i    { font-size: 3rem; color: #d1d5db; }
+    .empty-state h5   { color: #6b7280; margin-top: 12px; }
+    .empty-state p    { color: #9ca3af; font-size: 0.88rem; }
+</style>
+
+<div class="container py-4" style="max-width: 860px;">
+
+    <div class="page-header">
+        <h2><i class="bi bi-list-ul me-2"></i>My Complaints</h2>
+        <p>Track all your submitted complaints and their current status</p>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <span class="text-muted" style="font-size:0.88rem;">
+            @Model.Complaints.Count complaint(s) found
+        </span>
+        <a href="/Portal/SubmitComplaint" class="btn btn-success btn-sm px-3">
+            <i class="bi bi-plus-circle me-1"></i> New Complaint
+        </a>
+    </div>
+
+    @if (!Model.Complaints.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h5>No Complaints Yet</h5>
+            <p>You haven't submitted any complaints yet.</p>
+            <a href="/Portal/SubmitComplaint" class="btn btn-success mt-2 px-4">
+                <i class="bi bi-pencil-square me-1"></i> Submit Your First Complaint
+            </a>
+        </div>
+    }
+    else
+    {
+        foreach (var p in Model.Complaints)
+        {
+            <a href="/Portal/ComplaintDetail?id=@p.PetitionApplicationId" class="complaint-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex:1; min-width:0;">
+                        <div class="complaint-id"># @p.PetitionApplicationId</div>
+                        <div class="complaint-cat">@(p.ComplaintCategory?.Name ?? "General")</div>
+                        <div class="complaint-desc">@p.Description</div>
+                        <div class="complaint-date">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Submitted on @p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                        </div>
+                    </div>
+                    <div class="ms-3 text-end">
+                        <span class="badge-status @GetStatusClass(p.Status)">
+                            @GetStatusLabel(p.Status)
+                        </span>
+                        <div class="mt-2" style="font-size:0.78rem; color:#9ca3af;">
+                            <i class="bi bi-chevron-right"></i> View Details
+                        </div>
+                    </div>
+                </div>
+            </a>
+        }
+    }
+</div>
+
+@functions {
+    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus status) => status switch
+    {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted             => "status-submitted",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny         => "status-underscrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction  => "status-underscrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop    => "status-underscrutiny",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned              => "status-assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress            => "status-inprogress",
+        PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure   => "status-inprogress",
+        PMS.Web.Models.Enums.PetitionStatus.Closed                => "status-closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped               => "status-dropped",
+        PMS.Web.Models.Enums.PetitionStatus.Reopened              => "status-assigned",
+        _                                                          => "status-default"
+    };
+
+    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus status) => status switch
+    {
+        PMS.Web.Models.Enums.PetitionStatus.Submitted             => "Submitted",
+        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny         => "Under Review",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction  => "Under Review",
+        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop    => "Under Review",
+        PMS.Web.Models.Enums.PetitionStatus.Assigned              => "Assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress            => "In Progress",
+        PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure   => "Closure Pending",
+        PMS.Web.Models.Enums.PetitionStatus.Closed                => "Closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped               => "Dropped",
+        PMS.Web.Models.Enums.PetitionStatus.Reopened              => "Reopened",
+        _                                                          => status.ToString()
+    };
+}

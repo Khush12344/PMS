@@ -1,0 +1,297 @@
+@page
+@model PMS.Web.Pages.Portal.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        .register-wrapper {
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 10px 0 30px;
+        }
+
+        .section-label {
+            font-family: 'Noto Serif', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1B4332;
+            border-left: 4px solid #52B788;
+            padding-left: 10px;
+            margin: 24px 0 16px;
+        }
+
+            .section-label:first-child {
+                margin-top: 0;
+            }
+
+        .otp-row {
+            display: flex;
+            gap: 8px;
+        }
+
+            .otp-row .form-control {
+                flex: 1;
+            }
+
+        .btn-send-otp {
+            background: #2D6A4F;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-send-otp:hover {
+                background: #1B4332;
+            }
+
+        .otp-sent-badge {
+            background: #d8f3dc;
+            border: 1px solid #52B788;
+            color: #1B4332;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+            .otp-sent-badge.show {
+                display: block;
+            }
+
+        .alert-danger-soft {
+            background: #fde8e8;
+            border: 1px solid #f5a5a5;
+            color: #c0392b;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+        }
+
+        .alert-forest-soft {
+            background: #d8f3dc;
+            border: 1px solid #52B788;
+            color: #1B4332;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+        }
+
+        .mock-badge {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            margin-bottom: 16px;
+        }
+
+        .form-label .optional {
+            color: #adb5bd;
+            font-weight: 400;
+            font-size: 0.8rem;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+            .login-link a {
+                color: #2D6A4F;
+                font-weight: 600;
+                text-decoration: none;
+            }
+    </style>
+}
+
+<div class="register-wrapper">
+
+    <div class="card">
+        <div class="card-header-forest">
+            <h5><i class="bi bi-person-plus me-2"></i>Create Account</h5>
+        </div>
+        <div class="card-body p-4">
+
+            @if (Model.IsMockOtp)
+            {
+                <div class="mock-badge">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>Dev Mode:</strong> OTP is <strong>123456</strong>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert-danger-soft">
+                    <i class="bi bi-exclamation-circle me-1"></i>@Model.ErrorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert-forest-soft">
+                    <i class="bi bi-check-circle me-1"></i>@Model.SuccessMessage
+                </div>
+            }
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Personal Details -->
+                <div class="section-label">Personal Details</div>
+
+                <div class="mb-3">
+                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Enter your full name" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Email Address <span class="optional">(optional)</span>
+                    </label>
+                    <input asp-for="Email" class="form-control" placeholder="Enter email address" type="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <!-- Address -->
+                <div class="section-label">Address</div>
+
+                <div class="mb-3">
+                    <label class="form-label">House No / Building / Apartment</label>
+                    <input asp-for="HouseNo" class="form-control" placeholder="House No / Bldg / Apt" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Street / Road / Lane</label>
+                    <input asp-for="Street" class="form-control" placeholder="Street / Road / Lane" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Area / Locality / City</label>
+                    <input asp-for="Area" class="form-control" placeholder="Area / Locality / City" />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">District <span class="text-danger">*</span></label>
+                        <select asp-for="DistrictId" class="form-select" id="districtSelect">
+                            <option value="">Select District</option>
+                            @foreach (var d in Model.Districts)
+                            {
+                                <option value="@d.DistrictId">@d.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="DistrictId" class="text-danger small"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Taluk</label>
+                        <select asp-for="TalukId" class="form-select" id="talukSelect">
+                            <option value="">Select Taluk</option>
+                            @foreach (var t in Model.Taluks)
+                            {
+                                <option value="@t.TalukId" data-district="@t.DistrictId">@t.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Village / Town</label>
+                        <input asp-for="Village" class="form-control" placeholder="Village / Town" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">PIN Code</label>
+                        <input asp-for="Pincode" class="form-control" placeholder="PIN Code" maxlength="6" inputmode="numeric" />
+                    </div>
+                </div>
+
+                <!-- Mobile & OTP -->
+                <div class="section-label">Mobile Verification</div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                    <div class="otp-row">
+                        <input asp-for="MobileNumber"
+                               class="form-control"
+                               placeholder="10-digit mobile number"
+                               maxlength="10"
+                               inputmode="numeric" />
+                        <button type="submit" asp-page-handler="SendOtp" class="btn-send-otp">
+                            <i class="bi bi-send me-1"></i>Send OTP
+                        </button>
+                    </div>
+                    <span asp-validation-for="MobileNumber" class="text-danger small"></span>
+                    <div class="otp-sent-badge @(Model.OtpSent ? "show" : "")">
+                        <i class="bi bi-check-circle me-1"></i>OTP sent to @Model.MobileNumber
+                    </div>
+                </div>
+
+                <input type="hidden" asp-for="OtpSent" />
+
+                @if (Model.OtpSent)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Enter OTP <span class="text-danger">*</span></label>
+                        <input asp-for="Otp"
+                               class="form-control"
+                               placeholder="Enter 6-digit OTP"
+                               maxlength="6"
+                               inputmode="numeric"
+                               autofocus />
+                        <span asp-validation-for="Otp" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" asp-page-handler="Register" class="btn btn-forest btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                }
+
+                <div class="login-link">
+                    Already have an account? <a href="/Portal/Login">Login here</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var districtSelect = document.getElementById('districtSelect');
+        var talukSelect    = document.getElementById('talukSelect');
+        var allTaluks      = Array.from(talukSelect.options);
+
+        districtSelect.addEventListener('change', function () {
+            var districtId = this.value;
+            talukSelect.innerHTML = '<option value="">Select Taluk</option>';
+            allTaluks.forEach(function (opt) {
+                if (opt.dataset.district === districtId) {
+                    talukSelect.appendChild(opt.cloneNode(true));
+                }
+            });
+        });
+
+        if (districtSelect.value) {
+            districtSelect.dispatchEvent(new Event('change'));
+        }
+    </script>
+}
