@@ -35,6 +35,8 @@ namespace PMS.Web.Migrations
                     DistrictId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    NameKN = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    KGISCode = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -49,6 +51,8 @@ namespace PMS.Web.Migrations
                     TalukId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    NameKN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MasterCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DistrictId = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -60,6 +64,57 @@ namespace PMS.Web.Migrations
                         column: x => x.DistrictId,
                         principalTable: "Districts",
                         principalColumn: "DistrictId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Towns",
+                columns: table => new
+                {
+                    TownId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    KGISTownId = table.Column<int>(type: "int", nullable: false),
+                    KGISCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameEN = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TownType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DistrictId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Towns", x => x.TownId);
+                    table.ForeignKey(
+                        name: "FK_Towns_Districts_DistrictId",
+                        column: x => x.DistrictId,
+                        principalTable: "Districts",
+                        principalColumn: "DistrictId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Hoblis",
+                columns: table => new
+                {
+                    HobliId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MasterCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameEN = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameKN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TalukId = table.Column<int>(type: "int", nullable: false),
+                    DistrictId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Hoblis", x => x.HobliId);
+                    table.ForeignKey(
+                        name: "FK_Hoblis_Districts_DistrictId",
+                        column: x => x.DistrictId,
+                        principalTable: "Districts",
+                        principalColumn: "DistrictId");
+                    table.ForeignKey(
+                        name: "FK_Hoblis_Taluks_TalukId",
+                        column: x => x.TalukId,
+                        principalTable: "Taluks",
+                        principalColumn: "TalukId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -102,41 +157,95 @@ namespace PMS.Web.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Villages",
+                columns: table => new
+                {
+                    VillageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MasterCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameEN = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameKN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    HobliId = table.Column<int>(type: "int", nullable: false),
+                    TalukId = table.Column<int>(type: "int", nullable: false),
+                    DistrictId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Villages", x => x.VillageId);
+                    table.ForeignKey(
+                        name: "FK_Villages_Districts_DistrictId",
+                        column: x => x.DistrictId,
+                        principalTable: "Districts",
+                        principalColumn: "DistrictId");
+                    table.ForeignKey(
+                        name: "FK_Villages_Hoblis_HobliId",
+                        column: x => x.HobliId,
+                        principalTable: "Hoblis",
+                        principalColumn: "HobliId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Villages_Taluks_TalukId",
+                        column: x => x.TalukId,
+                        principalTable: "Taluks",
+                        principalColumn: "TalukId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Petitions",
                 columns: table => new
                 {
                     PetitionId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: true),
                     PetitionApplicationId = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     ComplainantName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     HouseNo = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Street = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Area = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ComplainantDistrictId = table.Column<int>(type: "int", nullable: true),
+                    ComplainantIsUrban = table.Column<bool>(type: "bit", nullable: true),
                     ComplainantTalukId = table.Column<int>(type: "int", nullable: true),
+                    ComplainantHobliId = table.Column<int>(type: "int", nullable: true),
+                    ComplainantVillageId = table.Column<int>(type: "int", nullable: true),
+                    ComplainantTownId = table.Column<int>(type: "int", nullable: true),
                     ComplainantVillage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ComplainantPincode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ComplaintCategoryId = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LocationDistrictId = table.Column<int>(type: "int", nullable: false),
+                    LocationIsUrban = table.Column<bool>(type: "bit", nullable: true),
                     LocationTalukId = table.Column<int>(type: "int", nullable: true),
+                    LocationHobliId = table.Column<int>(type: "int", nullable: true),
+                    LocationVillageId = table.Column<int>(type: "int", nullable: true),
+                    LocationTownId = table.Column<int>(type: "int", nullable: true),
                     LocationVillage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LocationPincode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MobileNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     IsOfflineEntry = table.Column<bool>(type: "bit", nullable: false),
                     SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AssignedManagerId = table.Column<int>(type: "int", nullable: true),
+                    AssignedOAId = table.Column<int>(type: "int", nullable: true),
+                    AssignedToOAAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ManagerRemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ScrutinizedByUserId = table.Column<int>(type: "int", nullable: true),
                     ScrutinizedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OARecommendation = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     RecommendedOfficeType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     RecommendedOfficerId = table.Column<int>(type: "int", nullable: true),
                     OARemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OADropReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OADroppedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     AssignedOfficerId = table.Column<int>(type: "int", nullable: true),
                     AssignedOfficeType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     AssignedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     APCCFRemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: true)
+                    APCCFDocumentPath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    SummaryByOAId = table.Column<int>(type: "int", nullable: true),
+                    SummarySubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    SummaryRemarks = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId1 = table.Column<int>(type: "int", nullable: true),
+                    UserId2 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -159,6 +268,16 @@ namespace PMS.Web.Migrations
                         principalColumn: "DistrictId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_Petitions_Hoblis_ComplainantHobliId",
+                        column: x => x.ComplainantHobliId,
+                        principalTable: "Hoblis",
+                        principalColumn: "HobliId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Hoblis_LocationHobliId",
+                        column: x => x.LocationHobliId,
+                        principalTable: "Hoblis",
+                        principalColumn: "HobliId");
+                    table.ForeignKey(
                         name: "FK_Petitions_Taluks_ComplainantTalukId",
                         column: x => x.ComplainantTalukId,
                         principalTable: "Taluks",
@@ -168,6 +287,26 @@ namespace PMS.Web.Migrations
                         column: x => x.LocationTalukId,
                         principalTable: "Taluks",
                         principalColumn: "TalukId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Towns_ComplainantTownId",
+                        column: x => x.ComplainantTownId,
+                        principalTable: "Towns",
+                        principalColumn: "TownId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Towns_LocationTownId",
+                        column: x => x.LocationTownId,
+                        principalTable: "Towns",
+                        principalColumn: "TownId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Users_AssignedManagerId",
+                        column: x => x.AssignedManagerId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Users_AssignedOAId",
+                        column: x => x.AssignedOAId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
                     table.ForeignKey(
                         name: "FK_Petitions_Users_AssignedOfficerId",
                         column: x => x.AssignedOfficerId,
@@ -184,10 +323,35 @@ namespace PMS.Web.Migrations
                         principalTable: "Users",
                         principalColumn: "UserId");
                     table.ForeignKey(
+                        name: "FK_Petitions_Users_SummaryByOAId",
+                        column: x => x.SummaryByOAId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                    table.ForeignKey(
                         name: "FK_Petitions_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Users_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Users_UserId2",
+                        column: x => x.UserId2,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Villages_ComplainantVillageId",
+                        column: x => x.ComplainantVillageId,
+                        principalTable: "Villages",
+                        principalColumn: "VillageId");
+                    table.ForeignKey(
+                        name: "FK_Petitions_Villages_LocationVillageId",
+                        column: x => x.LocationVillageId,
+                        principalTable: "Villages",
+                        principalColumn: "VillageId");
                 });
 
             migrationBuilder.CreateTable(
@@ -316,53 +480,6 @@ namespace PMS.Web.Migrations
                     { 8, null, true, "Other" }
                 });
 
-            migrationBuilder.InsertData(
-                table: "Districts",
-                columns: new[] { "DistrictId", "IsActive", "Name" },
-                values: new object[,]
-                {
-                    { 1, true, "Bengaluru Urban" },
-                    { 2, true, "Bengaluru Rural" },
-                    { 3, true, "Mysuru" },
-                    { 4, true, "Tumakuru" },
-                    { 5, true, "Shivamogga" },
-                    { 6, true, "Dakshina Kannada" },
-                    { 7, true, "Uttara Kannada" },
-                    { 8, true, "Kodagu" },
-                    { 9, true, "Hassan" },
-                    { 10, true, "Chikkamagaluru" },
-                    { 11, true, "Mandya" },
-                    { 12, true, "Chamarajanagar" },
-                    { 13, true, "Ramanagara" },
-                    { 14, true, "Kolar" },
-                    { 15, true, "Chitradurga" },
-                    { 16, true, "Davanagere" },
-                    { 17, true, "Haveri" },
-                    { 18, true, "Dharwad" },
-                    { 19, true, "Gadag" },
-                    { 20, true, "Belagavi" },
-                    { 21, true, "Vijayapura" },
-                    { 22, true, "Bagalkot" },
-                    { 23, true, "Ballari" },
-                    { 24, true, "Koppal" },
-                    { 25, true, "Raichur" },
-                    { 26, true, "Yadgir" },
-                    { 27, true, "Kalaburagi" },
-                    { 28, true, "Bidar" },
-                    { 29, true, "Udupi" },
-                    { 30, true, "Chikkaballapur" },
-                    { 31, true, "Vijayanagara" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "UserId", "Area", "CreatedAt", "DistrictId", "Email", "HouseNo", "IsActive", "MobileNumber", "Name", "OfficeType", "OtpExpiry", "OtpHash", "Pincode", "Role", "Street", "TalukId", "Village" },
-                values: new object[,]
-                {
-                    { 1, null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, true, "9000000001", "APCCF Vigilance", null, null, null, null, "APCCF", null, null, null },
-                    { 2, null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, true, "9000000002", "Office Assistant", null, null, null, null, "OfficeAssistant", null, null, null }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_ActionReportAttachments_ReportId",
                 table: "ActionReportAttachments",
@@ -379,9 +496,29 @@ namespace PMS.Web.Migrations
                 column: "PetitionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Hoblis_DistrictId",
+                table: "Hoblis",
+                column: "DistrictId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Hoblis_TalukId",
+                table: "Hoblis",
+                column: "TalukId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PetitionAttachments_PetitionId",
                 table: "PetitionAttachments",
                 column: "PetitionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_AssignedManagerId",
+                table: "Petitions",
+                column: "AssignedManagerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_AssignedOAId",
+                table: "Petitions",
+                column: "AssignedOAId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Petitions_AssignedOfficerId",
@@ -394,9 +531,24 @@ namespace PMS.Web.Migrations
                 column: "ComplainantDistrictId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Petitions_ComplainantHobliId",
+                table: "Petitions",
+                column: "ComplainantHobliId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Petitions_ComplainantTalukId",
                 table: "Petitions",
                 column: "ComplainantTalukId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_ComplainantTownId",
+                table: "Petitions",
+                column: "ComplainantTownId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_ComplainantVillageId",
+                table: "Petitions",
+                column: "ComplainantVillageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Petitions_ComplaintCategoryId",
@@ -409,9 +561,24 @@ namespace PMS.Web.Migrations
                 column: "LocationDistrictId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Petitions_LocationHobliId",
+                table: "Petitions",
+                column: "LocationHobliId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Petitions_LocationTalukId",
                 table: "Petitions",
                 column: "LocationTalukId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_LocationTownId",
+                table: "Petitions",
+                column: "LocationTownId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_LocationVillageId",
+                table: "Petitions",
+                column: "LocationVillageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Petitions_PetitionApplicationId",
@@ -430,9 +597,24 @@ namespace PMS.Web.Migrations
                 column: "ScrutinizedByUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Petitions_SummaryByOAId",
+                table: "Petitions",
+                column: "SummaryByOAId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Petitions_UserId",
                 table: "Petitions",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_UserId1",
+                table: "Petitions",
+                column: "UserId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Petitions_UserId2",
+                table: "Petitions",
+                column: "UserId2");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PetitionWorkflowLogs_ActorUserId",
@@ -450,6 +632,11 @@ namespace PMS.Web.Migrations
                 column: "DistrictId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Towns_DistrictId",
+                table: "Towns",
+                column: "DistrictId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_DistrictId",
                 table: "Users",
                 column: "DistrictId");
@@ -463,6 +650,21 @@ namespace PMS.Web.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Users_TalukId",
                 table: "Users",
+                column: "TalukId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Villages_DistrictId",
+                table: "Villages",
+                column: "DistrictId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Villages_HobliId",
+                table: "Villages",
+                column: "HobliId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Villages_TalukId",
+                table: "Villages",
                 column: "TalukId");
         }
 
@@ -488,7 +690,16 @@ namespace PMS.Web.Migrations
                 name: "ComplaintCategories");
 
             migrationBuilder.DropTable(
+                name: "Towns");
+
+            migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Villages");
+
+            migrationBuilder.DropTable(
+                name: "Hoblis");
 
             migrationBuilder.DropTable(
                 name: "Taluks");

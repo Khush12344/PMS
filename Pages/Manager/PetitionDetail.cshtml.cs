@@ -82,6 +82,7 @@ namespace PMS.Web.Pages.Manager
                 .Include(p => p.AssignedOA)
                 .Include(p => p.AssignedOfficer)
                 .Include(p => p.Attachments)
+                .Include(p => p.ActionReports)
                 .Include(p => p.WorkflowLogs.OrderBy(l => l.ActionAt))
                     .ThenInclude(l => l.ActorUser)
                 .Include(p => p.ActionReports.OrderByDescending(r => r.SubmittedAt))

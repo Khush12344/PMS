@@ -44,6 +44,8 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("APCCF"));
     options.AddPolicy("FieldOfficer", policy =>
         policy.RequireRole("CircleOfficer", "DivisionOfficer", "FMSOfficer"));
+    options.AddPolicy("Manager", policy =>
+    policy.RequireRole("Manager"));
 });
 
 // ── SMS HTTP Client ───────────────────────────────────────────

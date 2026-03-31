@@ -12,8 +12,8 @@ using PMS.Data;
 namespace PMS.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260317122121_AddKGISMasters")]
-    partial class AddKGISMasters
+    [Migration("20260330210221_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -224,17 +224,14 @@ namespace PMS.Web.Migrations
 
                     b.Property<string>("MasterCode")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameEN")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameKN")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TalukId")
                         .HasColumnType("int");
@@ -256,6 +253,10 @@ namespace PMS.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PetitionId"));
 
+                    b.Property<string>("APCCFDocumentPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("APCCFRemarks")
                         .HasColumnType("nvarchar(max)");
 
@@ -265,12 +266,21 @@ namespace PMS.Web.Migrations
                     b.Property<DateTime?>("AssignedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("AssignedManagerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AssignedOAId")
+                        .HasColumnType("int");
+
                     b.Property<string>("AssignedOfficeType")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("AssignedOfficerId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("AssignedToOAAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("ComplainantDistrictId")
                         .HasColumnType("int");
@@ -336,6 +346,9 @@ namespace PMS.Web.Migrations
                     b.Property<int?>("LocationVillageId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ManagerRemarks")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("MobileNumber")
                         .IsRequired()
                         .HasMaxLength(15)
@@ -383,10 +396,29 @@ namespace PMS.Web.Migrations
                     b.Property<DateTime>("SubmittedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("SummaryByOAId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SummaryRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SummarySubmittedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId2")
+                        .HasColumnType("int");
+
                     b.HasKey("PetitionId");
+
+                    b.HasIndex("AssignedManagerId");
+
+                    b.HasIndex("AssignedOAId");
 
                     b.HasIndex("AssignedOfficerId");
 
@@ -419,7 +451,13 @@ namespace PMS.Web.Migrations
 
                     b.HasIndex("ScrutinizedByUserId");
 
+                    b.HasIndex("SummaryByOAId");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.HasIndex("UserId2");
 
                     b.ToTable("Petitions");
                 });
@@ -526,8 +564,7 @@ namespace PMS.Web.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MasterCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -535,8 +572,7 @@ namespace PMS.Web.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NameKN")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TalukId");
 
@@ -558,20 +594,17 @@ namespace PMS.Web.Migrations
 
                     b.Property<string>("KGISCode")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("KGISTownId")
                         .HasColumnType("int");
 
                     b.Property<string>("NameEN")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TownType")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TownId");
 
@@ -671,17 +704,14 @@ namespace PMS.Web.Migrations
 
                     b.Property<string>("MasterCode")
                         .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameEN")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameKN")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TalukId")
                         .HasColumnType("int");
@@ -748,8 +778,18 @@ namespace PMS.Web.Migrations
 
             modelBuilder.Entity("PMS.Web.Models.Entities.Petition", b =>
                 {
+                    b.HasOne("PMS.Web.Models.Entities.User", "AssignedManager")
+                        .WithMany()
+                        .HasForeignKey("AssignedManagerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PMS.Web.Models.Entities.User", "AssignedOA")
+                        .WithMany()
+                        .HasForeignKey("AssignedOAId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("PMS.Web.Models.Entities.User", "AssignedOfficer")
-                        .WithMany("AssignedPetitions")
+                        .WithMany()
                         .HasForeignKey("AssignedOfficerId")
                         .OnDelete(DeleteBehavior.NoAction);
 
@@ -820,9 +860,27 @@ namespace PMS.Web.Migrations
                         .HasForeignKey("ScrutinizedByUserId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("PMS.Web.Models.Entities.User", "SummaryByOA")
+                        .WithMany()
+                        .HasForeignKey("SummaryByOAId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PMS.Web.Models.Entities.User", "SubmittingUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PMS.Web.Models.Entities.User", null)
+                        .WithMany("AssignedPetitions")
+                        .HasForeignKey("UserId1");
+
                     b.HasOne("PMS.Web.Models.Entities.User", null)
                         .WithMany("SubmittedPetitions")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId2");
+
+                    b.Navigation("AssignedManager");
+
+                    b.Navigation("AssignedOA");
 
                     b.Navigation("AssignedOfficer");
 
@@ -851,6 +909,10 @@ namespace PMS.Web.Migrations
                     b.Navigation("RecommendedOfficer");
 
                     b.Navigation("ScrutinizedBy");
+
+                    b.Navigation("SubmittingUser");
+
+                    b.Navigation("SummaryByOA");
                 });
 
             modelBuilder.Entity("PMS.Web.Models.Entities.PetitionAttachment", b =>

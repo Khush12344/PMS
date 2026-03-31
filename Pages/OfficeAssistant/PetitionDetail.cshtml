@@ -1,12 +1,13 @@
 @page
 @model PMS.Web.Pages.OfficeAssistant.PetitionDetailModel
+@using PMS.Web.Models.Enums
 @{
     ViewData["Title"] = "Petition Detail";
     var p = Model.Petition;
     bool isOADropped     = p?.Status == PMS.Web.Models.Enums.PetitionStatus.OADropped;
     bool isForwarded     = p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction ||
                            p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop;
-    bool isNew           = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Submitted;
+    bool isNew           = p?.Status == PMS.Web.Models.Enums.PetitionStatus.AssignedToOA;
     bool isUnderScrutiny = p?.Status == PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny;
     bool canAct          = isNew || isUnderScrutiny;
 }
@@ -358,20 +359,26 @@ else
 </script>
 
 @functions {
-    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
-        PMS.Web.Models.Enums.PetitionStatus.Submitted            => "bs-new",
-        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny        => "bs-scrutiny",
-        PMS.Web.Models.Enums.PetitionStatus.OADropped            => "bs-oadrop",
-        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction => "bs-action",
-        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop   => "bs-droprec",
+    string GetStatusClass(PetitionStatus s) => s switch
+    {
+        PetitionStatus.Submitted => "bs-new",
+        PetitionStatus.AssignedToOA => "bs-new",
+        PetitionStatus.UnderScrutiny => "bs-scrutiny",
+        PetitionStatus.OADropped => "bs-oadrop",
+        PetitionStatus.RecommendedForAction => "bs-action",
+        PetitionStatus.RecommendedForDrop => "bs-droprec",
         _ => "bs-scrutiny"
     };
-    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
-        PMS.Web.Models.Enums.PetitionStatus.Submitted            => "New",
-        PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny        => "Under Scrutiny",
-        PMS.Web.Models.Enums.PetitionStatus.OADropped            => "Dropped by OA",
-        PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction => "Forwarded — For Action",
-        PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop   => "Forwarded — For Drop",
+
+    string GetStatusLabel(PetitionStatus s) => s switch
+    {
+        PetitionStatus.Submitted => "New",
+        PetitionStatus.AssignedToOA => "Assigned to You",
+        PetitionStatus.UnderScrutiny => "Under Scrutiny",
+        PetitionStatus.OADropped => "Dropped by OA",
+        PetitionStatus.RecommendedForAction => "Forwarded - For Action",
+        PetitionStatus.RecommendedForDrop => "Forwarded - For Drop",
         _ => s.ToString()
     };
+}
 }
