@@ -59,8 +59,9 @@ namespace PMS.Web.Pages.APCCF
             FromOAForDrop   = all.Where(p => p.Status == PetitionStatus.RecommendedForDrop).ToList();
 
             Assigned       = all.Where(p => p.Status == PetitionStatus.Assigned || p.Status == PetitionStatus.InProgress).ToList();
-            PendingClosure = all.Where(p => p.Status == PetitionStatus.SubmittedForClosure).ToList();
-            Closed         = all.Where(p => p.Status == PetitionStatus.Closed || p.Status == PetitionStatus.Dropped).ToList();
+            PendingClosure = all.Where(p =>p.Status == PetitionStatus.SubmittedForClosure ||p.Status == PetitionStatus.SummarySubmitted).ToList();
+            Closed = all.Where(p => p.Status == PetitionStatus.Closed || p.Status == PetitionStatus.Dropped).ToList();
+
 
             return Page();
         }

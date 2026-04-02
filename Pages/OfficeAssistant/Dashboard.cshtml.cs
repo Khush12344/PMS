@@ -24,13 +24,15 @@ namespace PMS.Web.Pages.OfficeAssistant
         public List<Petition> ForAction { get; set; } = new();
         public List<Petition> ForDrop { get; set; } = new();
         public List<Petition> OADropped { get; set; } = new();
+        public List<Petition> SummaryCases { get; set; } = new();
+
 
         public int CountNew => NewPetitions.Count;
         public int CountUnderScrutiny => UnderScrutiny.Count;
         public int CountForAction => ForAction.Count;
         public int CountForDrop => ForDrop.Count;
         public int CountOADropped => OADropped.Count;
-
+        public int CountSummary => SummaryCases.Count;
         public async Task<IActionResult> OnGetAsync()
         {
             // 🔥 SAFELY GET USER ID
@@ -78,7 +80,10 @@ namespace PMS.Web.Pages.OfficeAssistant
             OADropped = all
                 .Where(p => p.Status == PetitionStatus.OADropped)
                 .ToList();
-
+            // sent by manager
+            SummaryCases = all
+                .Where(p => p.Status == PetitionStatus.PendingOASummary)
+                .ToList();
             return Page();
         }
     }

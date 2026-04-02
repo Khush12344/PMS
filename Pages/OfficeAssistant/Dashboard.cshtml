@@ -107,6 +107,9 @@
         <button class="tab-btn" onclick="showTab('oadropped',this)">
             Dropped by OA <span class="badge ms-1" style="background:#d97706;">@Model.CountOADropped</span>
         </button>
+        <button class="tab-btn" onclick="showTab('summary',this)">
+            Summary <span class="badge bg-dark ms-1">@Model.CountSummary</span>
+        </button>
     </div>
 
     @{ 
@@ -146,12 +149,16 @@
     <div id="tab-foraction" style="display:none;">@{ RenderList(Model.ForAction, "row-forwarded", "bs-fwdact", "For Action", "", "View", "#1a5c2a"); }</div>
     <div id="tab-fordrop" style="display:none;">@{ RenderList(Model.ForDrop, "row-droprec", "bs-fwddrop", "For Drop", "", "View", "#dc2626"); }</div>
     <div id="tab-oadropped" style="display:none;">@{ RenderList(Model.OADropped, "row-dropped", "bs-oadrop", "Dropped by OA", "", "View", "#d97706"); }</div>
-
+    <div id="tab-summary" style="display:none;">
+        @{
+            RenderList(Model.SummaryCases, "row-forwarded", "bs-fwdact", "Summary Pending", "", "Summarize", "#6b21a8");
+        }
+    </div>
 </div>
 
 <script>
     function showTab(name, btn) {
-        ['new','scrutiny','foraction','fordrop','oadropped'].forEach(t =>
+        ['new','scrutiny','foraction','fordrop','oadropped','summary'].forEach(t =>
             document.getElementById('tab-' + t).style.display = 'none');
         document.getElementById('tab-' + name).style.display = 'block';
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

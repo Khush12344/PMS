@@ -13,7 +13,10 @@
     bool isPendingClosure = p?.Status == PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure;
     bool isClosed         = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Closed;
     bool isDropped        = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Dropped;
+    bool isSummary        = p.Status == PMS.Web.Models.Enums.PetitionStatus.SummarySubmitted;
     bool canAssign        = isSubmitted || isUnderScrutiny || isForAction || isForDrop || isOADropped;
+    var canSendToManager = p.Status == PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure
+                    || p.Status == PMS.Web.Models.Enums.PetitionStatus.InProgress;
 }
 
 <style>
@@ -336,7 +339,7 @@ else
                     <input type="hidden" name="PetitionId" value="@p.PetitionId" />
 
                     @* Pending Closure — Accept or Reject final report *@
-                    @if (isPendingClosure)
+                    @if (isPendingClosure || isSummary)
                     {
                         var finalReport = p.ActionReports.FirstOrDefault(r =>
                             r.ReportType == PMS.Web.Models.Enums.ReportType.Final && !r.IsApproved.HasValue);
@@ -482,9 +485,9 @@ else
                             </div>
                         </div>
                     }
-
+                    
                     @* Already Assigned / In Progress — can still drop *@
-                    @if (isAssigned || isInProgress)
+                    @if (canSendToManager)
                     {
                         <div class="action-card">
                             <div class="section-title">Actions</div>
@@ -507,7 +510,31 @@ else
                                     </div>
                                 </div>
                             </div>
+                            <div class="action-option" style="border-color:#fcd34d; background:#fffbeb;">
+                                <div class="action-title" style="color:#92400e;">
+                                    <i class="bi bi-arrow-return-left me-1"></i>Send to Manager
+                                </div>
+
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="form-label">Remarks</label>
+                                        <textarea name="Remarks" class="form-control form-control-sm"
+                                          placeholder="Reason for sending to Manager..."></textarea>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <button type="submit"
+                                                name="action"
+                                                value="sendtomanager"
+                                                class="btn w-100"
+                                                style="background:#d97706;color:white;">
+                                            <i class="bi bi-send me-1"></i>Send to Manager
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                        
                     }
                 </form>
             }

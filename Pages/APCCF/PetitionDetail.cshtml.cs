@@ -48,6 +48,16 @@ namespace PMS.Web.Pages.APCCF
             {
                 switch (action)
                 {
+                    case "sendtomanager":
+                        if (string.IsNullOrWhiteSpace(Remarks))
+                        {
+                            ErrorMessage = "Please provide remarks before sending to Manager.";
+                            break;
+                        }
+
+                        await _workflow.SendToManagerAsync(PetitionId, apccfUserId, Remarks);
+                        SuccessMessage = "✓ Sent to Manager for review.";
+                        break;
                     // ── Assign to field officer ───────────────────
                     case "assign":
                         if (string.IsNullOrWhiteSpace(OfficeType) || AssignedOfficerId == null)
@@ -101,6 +111,8 @@ namespace PMS.Web.Pages.APCCF
                         await _workflow.RejectAndReassignAsync(PetitionId, apccfUserId, ReportId.Value, ot3, AssignedOfficerId.Value, Remarks ?? "");
                         SuccessMessage = "✓ Report rejected. Petition reassigned to new officer.";
                         break;
+                    
+
                 }
             }
             catch (Exception ex)

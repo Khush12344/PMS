@@ -32,7 +32,8 @@ namespace PMS.Web.Pages.OfficeAssistant
         [BindProperty] public int? RecommendedOfficerId { get; set; }
         [BindProperty] public string? DropReason { get; set; }
         [BindProperty] public string? OADropReason { get; set; }
-
+        [BindProperty]
+        public List<IFormFile> SummaryDocs { get; set; } = new();
         public async Task<IActionResult> OnGetAsync(int id)
         {
             await LoadAsync(id);
@@ -43,7 +44,7 @@ namespace PMS.Web.Pages.OfficeAssistant
         public async Task<IActionResult> OnPostAsync(string action)
         {
             var oaUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-
+            //var apccfUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
             try
             {
                 switch (action)
@@ -74,6 +75,15 @@ namespace PMS.Web.Pages.OfficeAssistant
                         { ErrorMessage = "Please provide a reason for dropping this petition."; break; }
                         await _workflow.OADropAsync(PetitionId, oaUserId, OADropReason);
                         SuccessMessage = "✓ Petition dropped. APCCF has been notified and can review the original.";
+                        break;
+
+                    //case "sendtomanager":
+                    //    await _workflow.SendToManagerAsync(PetitionId, apccfUserId, Remarks);
+                    //    SuccessMessage = "✓ Sent to Manager for review.";
+                    //    break;
+                    case "submitSummary":
+                        await _workflow.SubmitSummaryAsync(PetitionId, oaUserId, Remarks ?? "", SummaryDocs);
+                        SuccessMessage = "✓ Summary submitted to APCCF.";
                         break;
                 }
             }
