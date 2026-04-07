@@ -4,122 +4,423 @@
 @{
     ViewData["Title"] = "Petition Detail";
     var p = Model.Petition;
-    bool isOADropped     = p?.Status == PMS.Web.Models.Enums.PetitionStatus.OADropped;
-    bool isForwarded     = p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction ||
+    bool isOADropped = p?.Status == PMS.Web.Models.Enums.PetitionStatus.OADropped;
+    bool isForwarded = p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForAction ||
                            p?.Status == PMS.Web.Models.Enums.PetitionStatus.RecommendedForDrop;
-    bool isNew           = p?.Status == PMS.Web.Models.Enums.PetitionStatus.AssignedToOA;
+    bool isNew = p?.Status == PMS.Web.Models.Enums.PetitionStatus.AssignedToOA;
     bool isUnderScrutiny = p?.Status == PMS.Web.Models.Enums.PetitionStatus.UnderScrutiny;
     bool isSummary = p?.Status == PetitionStatus.PendingOASummary;
     bool canAct = isNew || isUnderScrutiny || isSummary;
-
 }
 
 <style>
-    .page-header { background: linear-gradient(135deg,#1a5c2a 0%,#2d8a45 100%); color:white; padding:22px 28px; border-radius:10px; margin-bottom:24px; }
-    .detail-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:20px; }
-    .section-title { font-size:.85rem; font-weight:700; color:#1a5c2a; border-left:3px solid #1a5c2a; padding-left:10px; margin-bottom:16px; text-transform:uppercase; letter-spacing:.4px; }
-    .detail-row { display:flex; margin-bottom:10px; align-items:flex-start; }
-    .detail-label { font-size:.82rem; color:#6b7280; font-weight:500; min-width:150px; }
-    .detail-value { font-size:.88rem; color:#111827; font-weight:500; }
-    .desc-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px 16px; font-size:.88rem; color:#374151; line-height:1.6; }
+    .page-header {
+        background: linear-gradient(135deg,#1a5c2a 0%,#2d8a45 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 10px;
+        margin-bottom: 24px;
+    }
 
-    .attach-item { display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:6px; padding:5px 12px; font-size:.8rem; margin:4px; color:#374151; text-decoration:none; }
-    .attach-item:hover { background:#e5e7eb; }
-    .attach-img { width:80px; height:60px; object-fit:cover; border-radius:4px; border:1px solid #e5e7eb; cursor:pointer; }
+    .detail-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        padding: 22px 26px;
+        margin-bottom: 20px;
+    }
 
-    .action-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:16px; }
-    .action-option { border:2px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:12px; }
-    .action-option.scrutiny  { border-color:#93c5fd; background:#eff6ff; }
-    .action-option.foraction { border-color:#86efac; background:#f0fdf4; }
-    .action-option.fordrop   { border-color:#fca5a5; background:#fff5f5; }
-    .action-option.oadrop    { border-color:#fcd34d; background:#fffbeb; }
-    .action-title { font-weight:700; font-size:.9rem; margin-bottom:8px; }
+    .section-title {
+        font-size: .85rem;
+        font-weight: 700;
+        color: #1a5c2a;
+        border-left: 3px solid #1a5c2a;
+        padding-left: 10px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
 
-    .form-label { font-weight:500; font-size:.875rem; color:#374151; }
-    .form-control,.form-select { border-radius:6px; border:1px solid #d1d5db; font-size:.88rem; }
-    .form-control:focus,.form-select:focus { border-color:#1a5c2a; box-shadow:0 0 0 3px rgba(26,92,42,.1); }
+    .detail-row {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: flex-start;
+    }
 
-    .btn-blue   { background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:7px; font-weight:600; font-size:.85rem; }
-    .btn-green  { background:#1a5c2a; color:white; border:none; padding:8px 20px; border-radius:7px; font-weight:600; font-size:.85rem; }
-    .btn-red    { background:#dc2626; color:white; border:none; padding:8px 20px; border-radius:7px; font-weight:600; font-size:.85rem; }
-    .btn-amber  { background:#d97706; color:white; border:none; padding:8px 20px; border-radius:7px; font-weight:600; font-size:.85rem; }
+    .detail-label {
+        font-size: .82rem;
+        color: #6b7280;
+        font-weight: 500;
+        min-width: 150px;
+    }
 
-    .badge-status { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:600; }
-    .bs-new      { background:#fef3c7; color:#92400e; }
-    .bs-scrutiny { background:#dbeafe; color:#1d4ed8; }
-    .bs-oadrop   { background:#fef3c7; color:#b45309; }
-    .bs-action   { background:#d1fae5; color:#065f46; }
-    .bs-droprec  { background:#fee2e2; color:#991b1b; }
+    .detail-value {
+        font-size: .88rem;
+        color: #111827;
+        font-weight: 500;
+    }
 
-    .timeline { position:relative; padding-left:28px; }
-    .timeline::before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:#e5e7eb; }
-    .timeline-item { position:relative; margin-bottom:18px; }
-    .tl-dot { position:absolute; left:-24px; top:4px; width:14px; height:14px; border-radius:50%; background:#1a5c2a; border:2px solid #fff; box-shadow:0 0 0 2px #bbf7d0; }
-    .tl-label { font-weight:600; font-size:.87rem; color:#111827; }
-    .tl-date  { font-size:.75rem; color:#9ca3af; margin-top:2px; }
+    .desc-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: .88rem;
+        color: #374151;
+        line-height: 1.6;
+    }
 
-    
-    .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; justify-content:center; align-items:center; }
-    .lightbox.open { display:flex; }
-    .lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
-    .lightbox-close { position:absolute; top:20px; right:28px; color:white; font-size:2rem; cursor:pointer; }
+    .attach-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 5px 12px;
+        font-size: .8rem;
+        margin: 4px;
+        color: #374151;
+        text-decoration: none;
+    }
+
+        .attach-item:hover {
+            background: #e5e7eb;
+        }
+
+    .attach-img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+    }
+
+    .action-option {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+        .action-option.foraction {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+
+        .action-option.fordrop {
+            border-color: #fca5a5;
+            background: #fff5f5;
+        }
+
+        .action-option.oadrop {
+            border-color: #fcd34d;
+            background: #fffbeb;
+        }
+
+    .action-title {
+        font-weight: 700;
+        font-size: .9rem;
+        margin-bottom: 8px;
+    }
+
+    /* ── Accordion ── */
+    .acc-wrap {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+
+    .acc-title {
+        padding: 14px 18px 14px 20px;
+        font-size: .88rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+        transition: background .15s;
+    }
+
+        .acc-title:hover {
+            filter: brightness(.97);
+        }
+
+        .acc-title .chevron {
+            font-size: .75rem;
+            transition: transform .25s;
+        }
+
+        .acc-title.open .chevron {
+            transform: rotate(180deg);
+        }
+
+    .acc-body {
+        display: none;
+        padding: 16px 20px 20px;
+        border-top: 1px solid rgba(0,0,0,.07);
+    }
+
+        .acc-body.open {
+            display: block;
+        }
+
+    .acc-scrutiny {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .acc-action {
+        background: #f0fdf4;
+        color: #065f46;
+        border-left: 4px solid #22c55e;
+    }
+
+    .acc-drop {
+        background: #fff5f5;
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+    }
+
+    .acc-summary {
+        background: #f5f3ff;
+        color: #5b21b6;
+        border-left: 4px solid #8b5cf6;
+    }
+
+    .acc-group-label {
+        font-size: .78rem;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin: 0 0 8px 2px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        font-size: .875rem;
+        color: #374151;
+    }
+
+    .form-control, .form-select {
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        font-size: .88rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #1a5c2a;
+            box-shadow: 0 0 0 3px rgba(26,92,42,.1);
+        }
+
+    .btn-blue {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 7px;
+        font-weight: 600;
+        font-size: .85rem;
+    }
+
+    .btn-green {
+        background: #1a5c2a;
+        color: white;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 7px;
+        font-weight: 600;
+        font-size: .85rem;
+    }
+
+    .btn-red {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 7px;
+        font-weight: 600;
+        font-size: .85rem;
+    }
+
+    .btn-purple {
+        background: #6b21a8;
+        color: white;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 7px;
+        font-weight: 600;
+        font-size: .85rem;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .bs-new {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .bs-scrutiny {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .bs-oadrop {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .bs-action {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .bs-droprec {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 28px;
+    }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #e5e7eb;
+        }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 18px;
+    }
+
+    .tl-dot {
+        position: absolute;
+        left: -24px;
+        top: 4px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #1a5c2a;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #bbf7d0;
+    }
+
+    .tl-label {
+        font-weight: 600;
+        font-size: .87rem;
+        color: #111827;
+    }
+
+    .tl-date {
+        font-size: .75rem;
+        color: #9ca3af;
+        margin-top: 2px;
+    }
+
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.85);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .lightbox.open {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+        }
+
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 28px;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+    }
 </style>
 
 <div class="container py-4" style="max-width:920px;">
 
-@if (p == null)
-{
-    <div class="alert alert-warning">Petition not found.</div>
-}
-else
-{
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <div style="font-size:.8rem;opacity:.8;"># @p.PetitionApplicationId</div>
-                <h2 class="mb-0" style="font-size:1.25rem;">@(p.ComplaintCategory?.Name ?? "Petition Detail")</h2>
+    @if (p == null)
+    {
+        <div class="alert alert-warning">Petition not found.</div>
+    }
+    else
+    {
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <div style="font-size:.8rem;opacity:.8;"># @p.PetitionApplicationId</div>
+                    <h2 class="mb-0" style="font-size:1.25rem;">@(p.ComplaintCategory?.Name ?? "Petition Detail")</h2>
+                </div>
+                <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
             </div>
-            <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
         </div>
-    </div>
 
-    <a href="/OfficeAssistant/Dashboard" class="btn btn-outline-secondary btn-sm mb-3">
-        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
-    </a>
+        <a href="/OfficeAssistant/Dashboard" class="btn btn-outline-secondary btn-sm mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
 
-    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-    {
-        <div class="alert alert-success mb-3"><i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage</div>
-    }
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
-    }
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success mb-3"><i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
+        }
 
-    <div class="row g-4">
-        <div class="col-lg-7">
+        <div class="row g-4">
+            <div class="col-lg-7">
 
-            
-            <div class="detail-card">
-                <div class="section-title">Complainant</div>
-                <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
-                <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
-                @if (!string.IsNullOrEmpty(p.HouseNo) || !string.IsNullOrEmpty(p.Street))
-                {
+                <div class="detail-card">
+                    <div class="section-title">Petition</div>
+                    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
+                    <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
+                    @if (!string.IsNullOrEmpty(p.HouseNo) || !string.IsNullOrEmpty(p.Street))
+                    {
+                        <div class="detail-row">
+                            <span class="detail-label">Address</span>
+                            <span class="detail-value">@string.Join(", ", new[] { p.HouseNo, p.Street, p.Area }.Where(s => !string.IsNullOrEmpty(s)))</span>
+                        </div>
+                    }
                     <div class="detail-row">
-                        <span class="detail-label">Address</span>
-                        <span class="detail-value">@string.Join(", ", new[]{p.HouseNo,p.Street,p.Area}.Where(s=>!string.IsNullOrEmpty(s)))</span>
-                    </div>
-                }
-                <div class="detail-row">
-                    <span class="detail-label">District / Taluk</span>
-                    <span class="detail-value">
-                        @(p.ComplainantDistrict?.Name ?? "—")@if(p.ComplainantTaluk!=null){<text> / @p.ComplainantTaluk.Name</text>}
+                        <span class="detail-label">District / Taluk</span>
+                        <span class="detail-value">
+                            @(p.ComplainantDistrict?.Name ?? "—")@if(p.ComplainantTaluk!=null){
+                            <text> / @p.ComplainantTaluk.Name</text>
+                        }
                     </span>
                 </div>
             </div>
 
-            
             <div class="detail-card">
                 <div class="section-title">Petition Details</div>
                 <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">@(p.ComplaintCategory?.Name ?? "—")</span></div>
@@ -127,7 +428,13 @@ else
                 <div class="detail-row">
                     <span class="detail-label">Incident Location</span>
                     <span class="detail-value">
-                        @(p.LocationDistrict?.Name ?? "—")@if(p.LocationTaluk!=null){<text> / @p.LocationTaluk.Name</text>}@if(!string.IsNullOrEmpty(p.LocationVillage)){<text>, @p.LocationVillage</text>}
+                        @(p.LocationDistrict?.Name ?? "—")@if(p.LocationTaluk!=null){
+                        <text> / @p.LocationTaluk.Name</text>
+                                                }
+@if (!string.IsNullOrEmpty(p.LocationVillage))
+{
+                            <text>, @p.LocationVillage</text>
+                        }
                     </span>
                 </div>
                 <div class="mt-3">
@@ -136,16 +443,15 @@ else
                 </div>
             </div>
 
-            
             <div class="detail-card">
                 <div class="section-title">Attachments</div>
-
-                
                 <div class="mb-3">
                     <div style="font-size:.82rem;font-weight:700;color:#6b7280;margin-bottom:8px;">
                         <i class="bi bi-file-earmark-pdf text-danger me-1"></i>DOCUMENTS (PDF)
                     </div>
-                    @{var docs = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Document).ToList();}
+                    @{
+                        var docs = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Document).ToList();
+                    }
                     @if (!docs.Any())
                     {
                         <span style="font-size:.82rem;color:#9ca3af;">No documents uploaded</span>
@@ -155,17 +461,17 @@ else
                         <a href="/uploads/petitions/@p.PetitionId/@a.StoredFileName" target="_blank" class="attach-item">
                             <i class="bi bi-file-earmark-pdf text-danger"></i>
                             @a.OriginalFileName
-                            <span style="color:#9ca3af;">(@((a.FileSizeBytes/1024.0).ToString("0.#"))KB)</span>
+                            <span style="color:#9ca3af;">(@((a.FileSizeBytes / 1024.0).ToString("0.#"))KB)</span>
                         </a>
                     }
                 </div>
-
-                
                 <div>
                     <div style="font-size:.82rem;font-weight:700;color:#6b7280;margin-bottom:8px;">
                         <i class="bi bi-image text-success me-1"></i>PHOTOS
                     </div>
-                    @{var photos = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Photo).ToList();}
+                    @{
+                        var photos = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Photo).ToList();
+                    }
                     @if (!photos.Any())
                     {
                         <span style="font-size:.82rem;color:#9ca3af;">No photos uploaded</span>
@@ -174,9 +480,7 @@ else
                         @foreach (var a in photos)
                         {
                             <img src="/uploads/petitions/@p.PetitionId/@a.StoredFileName"
-                                 class="attach-img"
-                                 onclick="openLightbox(this.src)"
-                                 title="@a.OriginalFileName" />
+                                 class="attach-img" onclick="openLightbox(this.src)" title="@a.OriginalFileName" />
                         }
                     </div>
                 </div>
@@ -186,7 +490,6 @@ else
 
         <div class="col-lg-5">
 
-            
             @if (p.WorkflowLogs.Any())
             {
                 <div class="detail-card">
@@ -204,7 +507,7 @@ else
                 </div>
             }
 
-            
+            @* Dropped / Forwarded status display *@
             @if (isOADropped)
             {
                 <div class="action-option oadrop">
@@ -233,51 +536,55 @@ else
                 </div>
             }
 
-            
+            @* ══════════════════════════════════════════
+               OA ACTIONS — accordion style
+               ══════════════════════════════════════════ *@
             @if (canAct)
             {
                 <form method="post" enctype="multipart/form-data" id="actionForm">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="PetitionId" value="@p.PetitionId" />
 
-                    
+                    @* ── isNew: Begin Scrutiny ── *@
                     @if (isNew)
                     {
-                        <div class="action-option scrutiny">
-                            <div class="action-title" style="color:#1d4ed8;"><i class="bi bi-search me-1"></i>Step 1 — Scrutiny</div>
-                            <p style="font-size:.83rem;color:#374151;margin-bottom:12px;">
-                                Click to begin reviewing this petition's documents and details.
-                            </p>
-                            <button type="submit" name="action" value="scrutinize" class="btn-blue btn">
-                                <i class="bi bi-search me-1"></i> Scrutiny
-                            </button>
+                        <div class="acc-group-label">Actions</div>
+                        <div class="acc-wrap">
+                            <div class="acc-title acc-scrutiny" onclick="toggleAcc(this)">
+                                <span><i class="bi bi-search me-2"></i>Begin Scrutiny</span>
+                                <span class="chevron">▼</span>
+                            </div>
+                            <div class="acc-body">
+                                <p style="font-size:.83rem;color:#374151;margin-bottom:14px;">
+                                    Click to begin reviewing this petition's documents and details.
+                                </p>
+                                <button type="submit" name="action" value="scrutinize" class="btn-blue btn w-100">
+                                    <i class="bi bi-search me-1"></i>Start Scrutiny
+                                </button>
+                            </div>
                         </div>
                     }
 
-                    
+                    @* ── isUnderScrutiny: For Action + Drop ── *@
                     @if (isUnderScrutiny)
                     {
-                        <div class="action-card">
-                            <div class="section-title">Action</div>
+                        <div class="acc-group-label">Actions</div>
 
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Remarks (Optional)</label>
-                                <textarea name="Remarks" class="form-control" rows="2" placeholder="Add remarks..."></textarea>
+                       
+                        <div class="acc-wrap">
+                            <div class="acc-title acc-action" onclick="toggleAcc(this)">
+                                <span><i class="bi bi-check-circle me-2"></i>Submit to APCCF — For Action</span>
+                                <span class="chevron">▼</span>
                             </div>
-
-                            
-                            <div class="action-option foraction mb-3">
-                                <div class="action-title" style="color:#065f46;">
-                                    <i class="bi bi-check-circle me-1"></i>Submit to APCCF — For Action
-                                </div>
-                                <p style="font-size:.82rem;color:#374151;margin-bottom:10px;">
+                            <div class="acc-body">
+                                <p style="font-size:.82rem;color:#374151;margin-bottom:12px;">
                                     Documents are valid. Recommend this for field investigation.
                                 </p>
-                                <div class="row g-2">
+                                <div class="row g-2 mb-3">
                                     <div class="col-12">
                                         <label class="form-label">Recommended Office Type</label>
-                                        <select name="OfficeType" class="form-select form-select-sm" onchange="filterOfficers(this.value)">
+                                        <select name="OfficeType" class="form-select form-select-sm"
+                                                onchange="filterOfficers(this.value)">
                                             <option value="">— Select Office —</option>
                                             <option value="Circle">Circle Office</option>
                                             <option value="Division">Division Office</option>
@@ -286,96 +593,92 @@ else
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Recommended Officer</label>
-                                        <select name="RecommendedOfficerId" class="form-select form-select-sm" id="officerSelect">
-                                            <option value="">— Select Office —</option>
+                                        <select name="RecommendedOfficerId" id="officerSelect" class="form-select form-select-sm">
+                                            <option value="">— Select Officer —</option>
                                             @foreach (var o in Model.FieldOfficers)
                                             {
                                                 <option value="@o.UserId" data-office="@o.OfficeType">@o.Name (@o.OfficeType)</option>
                                             }
                                         </select>
                                     </div>
-                                    <div class="col-12">
-                                        <button type="submit" name="action" value="foraction" class="btn-green btn w-100">
-                                            <i class="bi bi-send me-1"></i>Submit — For Action
-                                        </button>
-                                    </div>
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Remarks <span style="font-size:.78rem;color:#9ca3af;">(Optional)</span></label>
+                                    <textarea name="Remarks" class="form-control" rows="2"
+                                      placeholder="Add remarks..."></textarea>
+                                </div>
+                                <button type="submit" name="action" value="foraction" class="btn-green btn w-100">
+                                    <i class="bi bi-send me-1"></i>Submit — For Action
+                                </button>
                             </div>
+                        </div>
 
-
-                            <div class="action-option fordrop mb-3">
-                                <div class="action-title" style="color:#991b1b;">
-                                    <i class="bi bi-trash me-1"></i>Drop Petition Directly
-                                </div>
-
-                                <p style="font-size:.82rem;color:#374151;margin-bottom:10px;">
-                                    Use this only for invalid submissions such as blank photos, corrupt PDFs, or unreadable attachments.
+                        
+                        <div class="acc-wrap">
+                            <div class="acc-title acc-drop" onclick="toggleAcc(this)">
+                                <span><i class="bi bi-trash me-2"></i>Drop Petition Directly</span>
+                                <span class="chevron">▼</span>
+                            </div>
+                            <div class="acc-body">
+                                <p style="font-size:.82rem;color:#374151;margin-bottom:12px;">
+                                    Use only for invalid submissions — blank photos, corrupt PDFs, or unreadable attachments.
                                 </p>
-
-                                <div class="row g-2">
-                                    <div class="col-12">
-                                        <label class="form-label">Drop Reason <span class="text-danger">*</span></label>
-                                        <input type="text" name="OADropReason"
-                                               class="form-control form-control-sm"
-                                               placeholder="e.g. All photos are blank, PDF is corrupt..." />
-                                    </div>
-
-                                    <div class="col-12">
-                                        <button type="submit" name="action" value="oadrop"
-                                                class="btn-red btn w-100"
-                                                onclick="return confirm('Are you sure you want to drop this petition?')">
-                                            <i class="bi bi-trash me-1"></i>Drop Directly
-                                        </button>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Drop Reason <span class="text-danger">*</span></label>
+                                    <input type="text" name="OADropReason" class="form-control form-control-sm"
+                                           placeholder="e.g. All photos are blank, PDF is corrupt..." />
                                 </div>
+                                <button type="submit" name="action" value="oadrop"
+                                        class="btn-red btn w-100"
+                                        onclick="return confirm('Are you sure you want to drop this petition?')">
+                                    <i class="bi bi-trash me-1"></i>Drop Directly
+                                </button>
                             </div>
                         </div>
                     }
+
+                    @* ── isSummary: Submit Summary ── *@
                     @if (isSummary)
                     {
-                        <div class="action-card" style="border-color:#7c3aed;background:#f5f3ff;">
-                            <div class="section-title" style="color:#5b21b6;">
-                                <i class="bi bi-file-earmark-text me-1"></i>Submit Summary to APCCF
+                        <div class="acc-group-label">Actions</div>
+                        <div class="acc-wrap">
+                            <div class="acc-title acc-summary" onclick="toggleAcc(this)">
+                                <span><i class="bi bi-file-earmark-text me-2"></i>Submit Summary to APCCF</span>
+                                <span class="chevron">▼</span>
                             </div>
-
-                            <div class="row g-2">
-
-                                <div class="col-12">
-                                    <label class="form-label">Summary Remarks</label>
-                                    <textarea name="Remarks" class="form-control form-control-sm"
-                                      placeholder="Enter summary..."></textarea>
-                                </div>
-
-                                <div class="col-6">
-                                    <label class="form-label">Document 1 (PDF)</label>
-                                    <input type="file" name="SummaryDocs" class="form-control form-control-sm" accept=".pdf" />
-                                </div>
-
-                                <div class="col-6">
-                                    <label class="form-label">Document 2 (PDF)</label>
-                                    <input type="file" name="SummaryDocs" class="form-control form-control-sm" accept=".pdf" />
-                                </div>
-
-                                <div class="col-12">
-                                    <button type="submit"
-                                            name="action"
-                                            value="submitSummary"
-                                            class="btn w-100"
-                                            style="background:#6b21a8;color:white;">
-                                        <i class="bi bi-send me-1"></i>Submit Summary to APCCF
-                                    </button>
+                            <div class="acc-body">
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="form-label">Summary Remarks <span class="text-danger">*</span></label>
+                                        <textarea name="Remarks" class="form-control form-control-sm" rows="3"
+                                          placeholder="Enter summary..."></textarea>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Document 1 (PDF)</label>
+                                        <input type="file" name="SummaryDocs" class="form-control form-control-sm" accept=".pdf" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Document 2 (PDF)</label>
+                                        <input type="file" name="SummaryDocs" class="form-control form-control-sm" accept=".pdf" />
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" name="action" value="submitSummary"
+                                                class="btn-purple btn w-100">
+                                            <i class="bi bi-send me-1"></i>Submit Summary to APCCF
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     }
+
                 </form>
             }
 
         </div>
     </div>
-}
+        }
 </div>
-
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <span class="lightbox-close">&times;</span>
@@ -383,6 +686,17 @@ else
 </div>
 
 <script>
+    function toggleAcc(titleEl) {
+        var isOpen = titleEl.classList.contains('open');
+        titleEl.closest('form').querySelectorAll('.acc-title').forEach(function(t) {
+            t.classList.remove('open');
+            t.nextElementSibling.classList.remove('open');
+        });
+        if (!isOpen) {
+            titleEl.classList.add('open');
+            titleEl.nextElementSibling.classList.add('open');
+        }
+    }
     function filterOfficers(officeType) {
         const sel = document.getElementById('officerSelect');
         sel.querySelectorAll('option[data-office]').forEach(o => {
@@ -408,7 +722,6 @@ else
         PetitionStatus.RecommendedForDrop => "bs-droprec",
         _ => "bs-scrutiny"
     };
-
     string GetStatusLabel(PetitionStatus s) => s switch
     {
         PetitionStatus.Submitted => "New",
@@ -419,5 +732,4 @@ else
         PetitionStatus.RecommendedForDrop => "Forwarded - For Drop",
         _ => s.ToString()
     };
-}
 }

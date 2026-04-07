@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace PMS.Web.Pages.Portal
 {
-    [Authorize(Roles = "Public")]
+    [Authorize(Roles = "Public,OfficeAssistant")]
     public class SubmitComplaintModel : PageModel
     {
         private readonly AppDbContext _db;
@@ -44,6 +44,7 @@ namespace PMS.Web.Pages.Portal
         [BindProperty] public int? ComplainantVillageId { get; set; }
         [BindProperty] public int? ComplainantTownId { get; set; }
         [BindProperty] public string? ComplainantPincode { get; set; }
+        [BindProperty]public string? ComplainantMobile { get; set; }
 
         // Incident Location
         [BindProperty] public int LocationDistrictId { get; set; }
@@ -74,8 +75,25 @@ namespace PMS.Web.Pages.Portal
 
         public async Task<IActionResult> OnPostAsync()
         {
-            MobileNumber = User.FindFirst(ClaimTypes.MobilePhone)?.Value ?? "";
             await LoadAsync();
+            bool isOA = User.IsInRole("OfficeAssistant");
+
+            if (isOA)
+            {
+                MobileNumber = ComplainantMobile?.Trim() ?? "";
+            }
+            else
+            {
+                MobileNumber = User.FindFirst(ClaimTypes.MobilePhone)?.Value ?? "";
+                Console.WriteLine("DEBUG MOBILE: " + MobileNumber);
+            }
+            //  VALIDATION
+            if (string.IsNullOrWhiteSpace(MobileNumber))
+            {
+                ErrorMessage = "Mobile number is required.";
+                return Page();
+            }
+            
 
             if (string.IsNullOrWhiteSpace(Description) || LocationDistrictId == 0 || ComplaintCategoryId == 0)
             {
@@ -84,10 +102,31 @@ namespace PMS.Web.Pages.Portal
             }
 
             try
-            {
+            {// 🔥 CHECK / CREATE PUBLIC USER
+                var existingUser = await _db.Users
+                    .FirstOrDefaultAsync(u => u.MobileNumber == MobileNumber);
+
+                if (existingUser == null)
+                {
+                    var newUser = new User
+                    {
+                        MobileNumber = MobileNumber,
+                        Name = ComplainantName,
+                        Role = UserRole.Public,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _db.Users.Add(newUser);
+                    await _db.SaveChangesAsync();
+
+                    existingUser = newUser;
+                }
                 var petition = new Petition
                 {
                     PetitionApplicationId = await _petitionService.GenerateNextApplicationIdAsync(),
+                    CreatedByUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0"),
+                    CreatedByRole = isOA ? "OfficeAssistant" : "Public",
                     ComplainantName       = ComplainantName,
                     HouseNo               = HouseNo,
                     Street                = Street,
@@ -114,6 +153,7 @@ namespace PMS.Web.Pages.Portal
                 };
 
                 _db.Petitions.Add(petition);
+
                 await _db.SaveChangesAsync();
 
                 var docs   = new List<IFormFile?> { Document1, Document2 }.Where(f => f != null).Cast<IFormFile>().ToList();

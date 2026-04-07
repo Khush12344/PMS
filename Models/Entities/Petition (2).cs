@@ -4,6 +4,8 @@ namespace PMS.Web.Models.Entities
 {
     public class Petition
     {
+        public int? CreatedByUserId { get; set; }
+        public string? CreatedByRole { get; set; }
         public int PetitionId { get; set; }
         public string PetitionApplicationId { get; set; } = string.Empty;
 

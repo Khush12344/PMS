@@ -218,13 +218,15 @@
                     </div>
                     <div class="col-6">
                         <label class="form-label">PIN Code</label>
-                        <input asp-for="Pincode" class="form-control" placeholder="PIN Code" maxlength="6" inputmode="numeric" />
+                        <input asp-for="Pincode" class="form-control" placeholder="PIN Code" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                     </div>
                 </div>
 
                 <!-- Mobile & OTP -->
                 <div class="section-label">Mobile Verification</div>
-
+                <a href="c:\users\ict-008\source\repos\pms.web\pages\portal\register.cshtml">c:\users\ict-008\source\repos\pms.web\pages\portal\register.cshtml</a>
+                <a href="c:\users\ict-008\source\repos\pms.web\pages\portal\register.cshtml.cs">c:\users\ict-008\source\repos\pms.web\pages\portal\register.cshtml.cs</a>
                 <div class="mb-3">
                     <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
                     <div class="otp-row">
@@ -232,7 +234,10 @@
                                class="form-control"
                                placeholder="10-digit mobile number"
                                maxlength="10"
-                               inputmode="numeric" />
+                               inputmode="numeric" 
+                               pattern="[0-9]*"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+
                         <button type="submit" asp-page-handler="SendOtp" class="btn-send-otp">
                             <i class="bi bi-send me-1"></i>Send OTP
                         </button>

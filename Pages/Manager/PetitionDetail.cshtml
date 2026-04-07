@@ -123,7 +123,7 @@ else
 
             @* Complainant *@
             <div class="detail-card">
-                <div class="section-title">Complainant</div>
+                    <div class="section-title">Petition</div>
                 <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
                 <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
                 <div class="detail-row">
@@ -136,7 +136,7 @@ else
 
             @* Complaint *@
             <div class="detail-card">
-                <div class="section-title">Complaint Details</div>
+                <div class="section-title">Petition Details</div>
                 <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">@(p.ComplaintCategory?.Name ?? "—")</span></div>
                 <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">@p.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span></div>
                 <div class="detail-row">

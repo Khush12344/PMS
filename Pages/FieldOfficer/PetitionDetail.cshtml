@@ -6,107 +6,392 @@
     bool canSubmit = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Assigned ||
                      p?.Status == PMS.Web.Models.Enums.PetitionStatus.InProgress ||
                      p?.Status == PMS.Web.Models.Enums.PetitionStatus.Reopened;
-    bool isClosed  = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Closed ||
+    bool isClosed = p?.Status == PMS.Web.Models.Enums.PetitionStatus.Closed ||
                      p?.Status == PMS.Web.Models.Enums.PetitionStatus.Dropped;
     bool isPending = p?.Status == PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure;
 }
 
 <style>
-    .page-header { background:linear-gradient(135deg,#1a5c2a 0%,#2d8a45 100%); color:white; padding:22px 28px; border-radius:10px; margin-bottom:24px; }
-    .detail-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:20px; }
-    .section-title { font-size:.85rem; font-weight:700; color:#1a5c2a; border-left:3px solid #1a5c2a; padding-left:10px; margin-bottom:16px; text-transform:uppercase; }
-    .detail-row { display:flex; margin-bottom:10px; align-items:flex-start; }
-    .detail-label { font-size:.82rem; color:#6b7280; font-weight:500; min-width:155px; }
-    .detail-value { font-size:.88rem; color:#111827; font-weight:500; }
-    .desc-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px 16px; font-size:.88rem; color:#374151; line-height:1.6; }
+    .page-header {
+        background: linear-gradient(135deg,#1a5c2a 0%,#2d8a45 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 10px;
+        margin-bottom: 24px;
+    }
 
-    .attach-item { display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:6px; padding:5px 12px; font-size:.8rem; margin:4px; color:#374151; text-decoration:none; }
-    .attach-item:hover { background:#e5e7eb; }
-    .attach-img { width:80px; height:60px; object-fit:cover; border-radius:4px; border:1px solid #e5e7eb; cursor:pointer; }
+    .detail-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        padding: 22px 26px;
+        margin-bottom: 20px;
+    }
 
-    .report-card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:12px; }
-    .report-type { font-size:.73rem; font-weight:700; padding:2px 8px; border-radius:10px; }
-    .rt-interim { background:#dbeafe; color:#1d4ed8; }
-    .rt-final   { background:#ede9fe; color:#5b21b6; }
+    .section-title {
+        font-size: .85rem;
+        font-weight: 700;
+        color: #1a5c2a;
+        border-left: 3px solid #1a5c2a;
+        padding-left: 10px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+    }
 
-    .action-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:22px 26px; margin-bottom:16px; }
-    .action-option { border:2px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:12px; }
-    .action-option.interim { border-color:#93c5fd; background:#eff6ff; }
-    .action-option.final   { border-color:#86efac; background:#f0fdf4; }
+    .detail-row {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: flex-start;
+    }
 
-    .form-label { font-weight:500; font-size:.875rem; color:#374151; }
-    .form-control { border-radius:6px; border:1px solid #d1d5db; font-size:.88rem; }
-    .form-control:focus { border-color:#1a5c2a; box-shadow:0 0 0 3px rgba(26,92,42,.1); }
+    .detail-label {
+        font-size: .82rem;
+        color: #6b7280;
+        font-weight: 500;
+        min-width: 155px;
+    }
 
-    .file-box { border:2px dashed #d1d5db; border-radius:8px; padding:12px; text-align:center; font-size:.8rem; color:#6b7280; position:relative; }
-    .file-box input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
-    .file-name { font-size:.75rem; color:#1a5c2a; margin-top:4px; }
+    .detail-value {
+        font-size: .88rem;
+        color: #111827;
+        font-weight: 500;
+    }
 
-    .badge-status { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:600; }
-    .bs-assigned { background:#dbeafe; color:#1d4ed8; }
-    .bs-inprog   { background:#ede9fe; color:#5b21b6; }
-    .bs-reopened { background:#fef3c7; color:#92400e; }
-    .bs-closure  { background:#fce7f3; color:#9d174d; }
-    .bs-closed   { background:#d1fae5; color:#065f46; }
-    .bs-dropped  { background:#fee2e2; color:#991b1b; }
+    .desc-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: .88rem;
+        color: #374151;
+        line-height: 1.6;
+    }
 
-    .timeline { position:relative; padding-left:28px; }
-    .timeline::before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:#e5e7eb; }
-    .timeline-item { position:relative; margin-bottom:18px; }
-    .tl-dot { position:absolute; left:-24px; top:4px; width:14px; height:14px; border-radius:50%; background:#1a5c2a; border:2px solid #fff; box-shadow:0 0 0 2px #bbf7d0; }
-    .tl-label { font-weight:600; font-size:.87rem; color:#111827; }
-    .tl-date  { font-size:.75rem; color:#9ca3af; margin-top:2px; }
+    .attach-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 5px 12px;
+        font-size: .8rem;
+        margin: 4px;
+        color: #374151;
+        text-decoration: none;
+    }
 
-    .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; justify-content:center; align-items:center; }
-    .lightbox.open { display:flex; }
-    .lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
-    .lightbox-close { position:absolute; top:20px; right:28px; color:white; font-size:2rem; cursor:pointer; }
+        .attach-item:hover {
+            background: #e5e7eb;
+        }
+
+    .attach-img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+        cursor: pointer;
+    }
+
+    .report-card {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .report-type {
+        font-size: .73rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+
+    .rt-interim {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .rt-final {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+    /* ── Accordion ── */
+    .acc-wrap {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+
+    .acc-title {
+        padding: 14px 18px 14px 20px;
+        font-size: .88rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+        transition: background .15s;
+    }
+
+        .acc-title:hover {
+            filter: brightness(.97);
+        }
+
+        .acc-title .chevron {
+            font-size: .75rem;
+            transition: transform .25s;
+        }
+
+        .acc-title.open .chevron {
+            transform: rotate(180deg);
+        }
+
+    .acc-body {
+        display: none;
+        padding: 16px 20px 20px;
+        border-top: 1px solid rgba(0,0,0,.07);
+    }
+
+        .acc-body.open {
+            display: block;
+        }
+
+    .acc-interim {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .acc-final {
+        background: #f0fdf4;
+        color: #065f46;
+        border-left: 4px solid #22c55e;
+    }
+
+    .acc-group-label {
+        font-size: .78rem;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin: 0 0 8px 2px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        font-size: .875rem;
+        color: #374151;
+    }
+
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        font-size: .88rem;
+    }
+
+        .form-control:focus {
+            border-color: #1a5c2a;
+            box-shadow: 0 0 0 3px rgba(26,92,42,.1);
+        }
+
+    .file-box {
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        font-size: .8rem;
+        color: #6b7280;
+        position: relative;
+    }
+
+        .file-box input[type=file] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+
+    .file-name {
+        font-size: .75rem;
+        color: #1a5c2a;
+        margin-top: 4px;
+    }
+
+    /* shared report fields card */
+    .report-fields-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        padding: 20px 22px;
+        margin-bottom: 14px;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .bs-assigned {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .bs-inprog {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+    .bs-reopened {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .bs-closure {
+        background: #fce7f3;
+        color: #9d174d;
+    }
+
+    .bs-closed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .bs-dropped {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 28px;
+    }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #e5e7eb;
+        }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 18px;
+    }
+
+    .tl-dot {
+        position: absolute;
+        left: -24px;
+        top: 4px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #1a5c2a;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #bbf7d0;
+    }
+
+    .tl-label {
+        font-weight: 600;
+        font-size: .87rem;
+        color: #111827;
+    }
+
+    .tl-date {
+        font-size: .75rem;
+        color: #9ca3af;
+        margin-top: 2px;
+    }
+
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.85);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .lightbox.open {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+        }
+
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 28px;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+    }
 </style>
 
 <div class="container py-4" style="max-width:920px;">
 
-@if (p == null)
-{
-    <div class="alert alert-warning">Petition not found or not assigned to you.</div>
-    <a href="/FieldOfficer/Dashboard" class="btn btn-outline-secondary btn-sm">← Back</a>
-}
-else
-{
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <div style="font-size:.8rem;opacity:.8;"># @p.PetitionApplicationId</div>
-                <h2 class="mb-0" style="font-size:1.25rem;">@(p.ComplaintCategory?.Name ?? "Petition")</h2>
+    @if (p == null)
+    {
+        <div class="alert alert-warning">Petition not found or not assigned to you.</div>
+        <a href="/FieldOfficer/Dashboard" class="btn btn-outline-secondary btn-sm">← Back</a>
+    }
+    else
+    {
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <div style="font-size:.8rem;opacity:.8;"># @p.PetitionApplicationId</div>
+                    <h2 class="mb-0" style="font-size:1.25rem;">@(p.ComplaintCategory?.Name ?? "Petition")</h2>
+                </div>
+                <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
             </div>
-            <span class="badge-status @GetStatusClass(p.Status)">@GetStatusLabel(p.Status)</span>
         </div>
-    </div>
 
-    <a href="/FieldOfficer/Dashboard" class="btn btn-outline-secondary btn-sm mb-3">
-        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
-    </a>
+        <a href="/FieldOfficer/Dashboard" class="btn btn-outline-secondary btn-sm mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
 
-    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-    {
-        <div class="alert alert-success mb-3"><i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage</div>
-    }
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
-    }
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success mb-3"><i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage</div>
+        }
 
-    <div class="row g-4">
-        <div class="col-lg-7">
+        <div class="row g-4">
+            <div class="col-lg-7">
 
-            @* Complainant *@
-            <div class="detail-card">
-                <div class="section-title">Complainant</div>
-                <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
-                <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
-                <div class="detail-row">
-                    <span class="detail-label">District / Taluk</span>
-                    <span class="detail-value">
-                        @(p.ComplainantDistrict?.Name ?? "—")@if(p.ComplainantTaluk!=null){<text> / @p.ComplainantTaluk.Name</text>}
+                @* Complainant *@
+                <div class="detail-card">
+                    <div class="section-title">Complainant</div>
+                    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">@(p.ComplainantName ?? "—")</span></div>
+                    <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">@p.MobileNumber</span></div>
+                    <div class="detail-row">
+                        <span class="detail-label">District / Taluk</span>
+                        <span class="detail-value">
+                            @(p.ComplainantDistrict?.Name ?? "—")@if(p.ComplainantTaluk!=null){
+                            <text> / @p.ComplainantTaluk.Name</text>
+                        }
                     </span>
                 </div>
             </div>
@@ -119,7 +404,9 @@ else
                 <div class="detail-row">
                     <span class="detail-label">Incident Location</span>
                     <span class="detail-value">
-                        @(p.LocationDistrict?.Name ?? "—")@if(p.LocationTaluk!=null){<text> / @p.LocationTaluk.Name</text>}
+                        @(p.LocationDistrict?.Name ?? "—")@if(p.LocationTaluk!=null){
+                        <text> / @p.LocationTaluk.Name</text>
+                                                }
                     </span>
                 </div>
                 <div class="mt-3">
@@ -133,8 +420,12 @@ else
             {
                 <div class="detail-card">
                     <div class="section-title">Complainant Attachments</div>
-                    @{var docs2 = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Document).ToList();}
-                    @{var photos2 = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Photo).ToList();}
+                    @{
+                        var docs2 = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Document).ToList();
+                    }
+                    @{
+                        var photos2 = p.Attachments.Where(a => a.FileType == PMS.Web.Models.Enums.AttachmentType.Photo).ToList();
+                    }
                     @if (docs2.Any())
                     {
                         <div class="mb-2">
@@ -183,7 +474,9 @@ else
                                 <div class="mt-2 p-2 rounded" style="background:@(r.IsApproved.Value ? "#f0fdf4" : "#fff5f5");font-size:.82rem;">
                                     <strong>APCCF:</strong> @(r.IsApproved.Value ? "✅ Accepted" : "❌ Rejected")
                                     @if (!string.IsNullOrEmpty(r.APCCFDecisionRemarks))
-                                    { <span> — @r.APCCFDecisionRemarks</span> }
+                                    {
+                                        <span> — @r.APCCFDecisionRemarks</span>
+                                    }
                                 </div>
                             }
                         </div>
@@ -213,31 +506,33 @@ else
                 </div>
             }
 
-            @* Submit Report *@
+            @* ══════════════════════════════════════════
+               FIELD OFFICER ACTIONS — accordion style
+               ══════════════════════════════════════════ *@
             @if (canSubmit)
             {
                 <form method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="PetitionId" value="@p.PetitionId" />
 
-                    <div class="action-card">
-                        <div class="section-title">Submit Report</div>
+                    @if (p.Status == PMS.Web.Models.Enums.PetitionStatus.Reopened)
+                    {
+                        <div class="alert alert-warning py-2 mb-3" style="font-size:.83rem;">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            <strong>APCCF sent this back.</strong> Please revise your report and resubmit.
+                        </div>
+                    }
 
-                        @if (p.Status == PMS.Web.Models.Enums.PetitionStatus.Reopened)
-                        {
-                            <div class="alert alert-warning py-2 mb-3" style="font-size:.83rem;">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                <strong>APCCF sent this back.</strong> Please revise your report and resubmit.
-                            </div>
-                        }
+                    {{! Shared report fields — always visible, used by both Interim and Final }}
+                    <div class="report-fields-card">
+                        <div class="section-title">Report Details</div>
 
                         <div class="mb-3">
                             <label class="form-label">Report Details <span class="text-danger">*</span></label>
                             <textarea name="ReportText" class="form-control" rows="5"
-                                      placeholder="Describe the action taken, findings, current status..."></textarea>
+                                  placeholder="Describe the action taken, findings, current status..."></textarea>
                         </div>
 
-                        @* Attachments *@
                         <div class="mb-3">
                             <div style="font-size:.82rem;font-weight:700;color:#6b7280;margin-bottom:8px;">
                                 <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Documents (PDF, optional)
@@ -260,7 +555,7 @@ else
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div>
                             <div style="font-size:.82rem;font-weight:700;color:#6b7280;margin-bottom:8px;">
                                 <i class="bi bi-image text-success me-1"></i>Photos (JPG, optional)
                             </div>
@@ -288,36 +583,48 @@ else
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        @* Interim Report *@
-                        <div class="action-option interim mb-2">
-                            <div style="font-weight:700;font-size:.88rem;color:#1d4ed8;margin-bottom:6px;">
-                                <i class="bi bi-file-text me-1"></i>Interim Report
-                            </div>
-                            <p style="font-size:.82rem;color:#374151;margin-bottom:10px;">
-                                Investigation is ongoing. Submit progress update.
+                    {{! Submit type — accordion }}
+                    <div class="acc-group-label">Choose Report Type</div>
+
+                    {{! Interim Report }}
+                    <div class="acc-wrap">
+                        <div class="acc-title acc-interim" onclick="toggleAcc(this)">
+                            <span><i class="bi bi-file-text me-2"></i>Save Interim Report</span>
+                            <span class="chevron">▼</span>
+                        </div>
+                        <div class="acc-body">
+                            <p style="font-size:.82rem;color:#374151;margin-bottom:14px;">
+                                Investigation is ongoing. Submits a progress update — petition stays active.
                             </p>
-                            <button type="submit" name="action" value="interim" class="btn w-100"
+                            <button type="submit" name="action" value="interim"
+                                    class="btn w-100"
                                     style="background:#2563eb;color:white;border:none;padding:9px;border-radius:7px;font-weight:600;font-size:.85rem;">
                                 <i class="bi bi-send me-1"></i>Submit Interim Report
                             </button>
                         </div>
+                    </div>
 
-                        @* Final Report *@
-                        <div class="action-option final">
-                            <div style="font-weight:700;font-size:.88rem;color:#065f46;margin-bottom:6px;">
-                                <i class="bi bi-check-circle me-1"></i>Final Report
-                            </div>
-                            <p style="font-size:.82rem;color:#374151;margin-bottom:10px;">
-                                Action completed. Submit final report for APCCF review and closure.
+                    {{! Final Report }}
+                    <div class="acc-wrap">
+                        <div class="acc-title acc-final" onclick="toggleAcc(this)">
+                            <span><i class="bi bi-check-circle me-2"></i>Submit as Final Report</span>
+                            <span class="chevron">▼</span>
+                        </div>
+                        <div class="acc-body">
+                            <p style="font-size:.82rem;color:#374151;margin-bottom:14px;">
+                                Action completed. Sends to APCCF for closure approval.
                             </p>
-                            <button type="submit" name="action" value="final" class="btn w-100"
+                            <button type="submit" name="action" value="final"
+                                    class="btn w-100"
                                     style="background:#1a5c2a;color:white;border:none;padding:9px;border-radius:7px;font-weight:600;font-size:.85rem;"
                                     onclick="return confirm('Submit final report? This will send the petition for APCCF closure approval.')">
                                 <i class="bi bi-check-circle me-1"></i>Submit Final Report
                             </button>
                         </div>
                     </div>
+
                 </form>
             }
 
@@ -339,7 +646,7 @@ else
 
         </div>
     </div>
-}
+        }
 </div>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -348,6 +655,17 @@ else
 </div>
 
 <script>
+    function toggleAcc(titleEl) {
+        var isOpen = titleEl.classList.contains('open');
+        titleEl.closest('form').querySelectorAll('.acc-title').forEach(function(t) {
+            t.classList.remove('open');
+            t.nextElementSibling.classList.remove('open');
+        });
+        if (!isOpen) {
+            titleEl.classList.add('open');
+            titleEl.nextElementSibling.classList.add('open');
+        }
+    }
     function showFN(input, id) {
         var el = document.getElementById(id);
         if (el && input.files && input.files[0])
@@ -363,22 +681,24 @@ else
 </script>
 
 @functions {
-    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
-        PMS.Web.Models.Enums.PetitionStatus.Assigned            => "bs-assigned",
-        PMS.Web.Models.Enums.PetitionStatus.InProgress          => "bs-inprog",
-        PMS.Web.Models.Enums.PetitionStatus.Reopened            => "bs-reopened",
+    string GetStatusClass(PMS.Web.Models.Enums.PetitionStatus s) => s switch
+    {
+        PMS.Web.Models.Enums.PetitionStatus.Assigned => "bs-assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress => "bs-inprog",
+        PMS.Web.Models.Enums.PetitionStatus.Reopened => "bs-reopened",
         PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure => "bs-closure",
-        PMS.Web.Models.Enums.PetitionStatus.Closed              => "bs-closed",
-        PMS.Web.Models.Enums.PetitionStatus.Dropped             => "bs-dropped",
+        PMS.Web.Models.Enums.PetitionStatus.Closed => "bs-closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped => "bs-dropped",
         _ => "bs-assigned"
     };
-    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus s) => s switch {
-        PMS.Web.Models.Enums.PetitionStatus.Assigned            => "Assigned",
-        PMS.Web.Models.Enums.PetitionStatus.InProgress          => "In Progress",
-        PMS.Web.Models.Enums.PetitionStatus.Reopened            => "Sent Back — Revise Report",
+    string GetStatusLabel(PMS.Web.Models.Enums.PetitionStatus s) => s switch
+    {
+        PMS.Web.Models.Enums.PetitionStatus.Assigned => "Assigned",
+        PMS.Web.Models.Enums.PetitionStatus.InProgress => "In Progress",
+        PMS.Web.Models.Enums.PetitionStatus.Reopened => "Sent Back — Revise Report",
         PMS.Web.Models.Enums.PetitionStatus.SubmittedForClosure => "Awaiting APCCF Decision",
-        PMS.Web.Models.Enums.PetitionStatus.Closed              => "Closed",
-        PMS.Web.Models.Enums.PetitionStatus.Dropped             => "Dropped",
+        PMS.Web.Models.Enums.PetitionStatus.Closed => "Closed",
+        PMS.Web.Models.Enums.PetitionStatus.Dropped => "Dropped",
         _ => s.ToString()
     };
 }
